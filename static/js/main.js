@@ -57,6 +57,10 @@ window.addEventListener('load', function () {
             
             const dateCurenteAI=dateAiSalvate[indexCurent];
             if (dateCurenteAI && dateCurenteAI !== null) {
+
+                afisareAI.innerHTML = dateCurenteAI;
+
+
                 // Construim un design HTML frumos, bucată cu bucată
                 let designFrumos = `
                     <h3 style="margin-top: 0; color: #2196F3;">Tip figură: <b>${dateCurenteAI.tip_figura.replace('_', ' ').toUpperCase()}</b></h3>
