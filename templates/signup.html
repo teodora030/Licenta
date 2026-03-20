@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block head %}
+<title>Creează un cont - TeoGebra</title>
+{% endblock %}
+
+{% block body %}
+<div class="content" style="max-width: 400px; margin: 0 auto;">
+    <h1 style="text-align: center;">Creează un cont</h1>
+
+    {% if eroare %}
+        <p style="color: red; text-align: center; font-weight: bold;">{{ eroare }}</p>
+    {% endif %}
+
+    <form action="/signup" method="POST" style="display: flex; flex-direction: column; gap: 15px;">
+        <div>
+            <label for="username">Nume de utilizator:</label><br>
+            <input type="text" id="username" name="username" required style="width: 100%; padding: 8px;">
+        </div>
+        
+        <div>
+            <label for="email">Email:</label><br>
+            <input type="email" id="email" name="email" required style="width: 100%; padding: 8px;">
+        </div>
+
+        <div>
+            <label for="password">Parolă:</label><br>
+            <input type="password" id="password" name="password" required style="width: 100%; padding: 8px;">
+        </div>
+
+        <button type="submit" style="padding: 10px; background-color: #4CAF50; color: white; border: none; cursor: pointer;">Creează contul</button>
+    </form>
+
+    <p style="text-align: center; margin-top: 20px;">
+        Ai deja cont? <a href="/login">Loghează-te aici</a>.
+    </p>
+</div>
+{% endblock %}

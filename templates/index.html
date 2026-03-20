@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block head %}
+<title>Dashboard - TeoGebra</title>
+
+{% endblock %}
+{% block body %}
+<h1>Dahsboard - Figuri de geometrie</h1>
+
+
+<div class="content">
+
+    {% include 'nav.html' %}
+
+    <p>Aici vor aparea problemele tale salvate.</p>
+
+    {% if probleme %}
+
+    <div class="lista_probleme">
+
+        {% for problema in probleme %}
+        <div class="card_problema" style="border: 1px solid #ccc">
+            <p>{{ problema.versiuni_text[-1] | truncate(150) }}</p>
+
+            <a href="/vizualizeaza_problema/{{ problema._id }}">
+                <button>Deschide problema</button>
+            </a>
+
+        </div>
+        {% endfor %}
+
+    </div>
+    
+    {% else %}
+    <p>Nu ai nici o problema salvata</p>     
+    
+    {% endif %}
+
+
+
+    
+
+    
+</div>
+
+
+
+{% endblock %}

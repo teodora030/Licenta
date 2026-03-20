@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block head %}
+<title>Adaugă Problema - TeoGebra</title>
+{% endblock %}
+
+{% block body %}
+<div class="content">
+    {% include 'nav.html' %}
+    <h1>Adaugă problema ta:</h1>
+
+    <form action="/adauga_problema" method="POST" class="form-problema">
+        <textarea name="text_problema" id="content" 
+                  placeholder="Fie un triunghi ABC..." required></textarea>
+        <button type="submit">Salvează problema</button>
+    </form>
+</div>
+
+<div id="ggb-wrapper">
+    <div id="ggb-element"></div>
+</div>
+{% endblock %}

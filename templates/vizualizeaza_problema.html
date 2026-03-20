@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block head %}
+<title>Vizualizare - TeoGebra</title>
+{% endblock %}
+
+{%block body%}
+
+<div class="content">
+
+    {% include 'nav.html' %}
+
+    {% if mesaj %}
+    <p id="mesaj-succes" style="color: green; font-weight: bold; margin-top: 15px;">{{ mesaj }}</p>
+
+    <script>
+        setTimeout(function(){
+            document.getElementById("mesaj-succes").style.display='none';
+        }, 3000);
+    </script>
+
+    {% endif %}
+
+        <h1>Problema ta:</h1>        
+
+    <p>Problema (Versiunea <span id="versiune_curenta">1</span> din <span id="total_versiuni">1</span>):</p>
+
+    <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+        <button id="btn_prev">&#8592;</button>
+        <button id="btn_next">&#8594;</button>
+
+    </div>
+
+    <form action="/editeaza_problema/{{problema._id}}" method="POST">
+        <textarea name="text_problema" id="textarea_problema" rows="4" style="width: 80%; font-size: 16px; padding: 10px;">{{problema.versiuni_text[-1]}}</textarea>
+
+        <br>
+        <button type="submit" style="margin-top: 10px;">Salveaza o noua versiune</button>
+
+
+    </form>
+
+    <p>Datele problemei:</p>
+    <div>
+        <button id="btn_extrage_date">Extrage datele problemei</button>
+
+        <button id="btn_genereaza_geogebra" disabled>Genereaza figura</button>
+    </div>
+
+    <div id="afisare_datele_problemei">Apasa butonul pentru a extrage datele probelemei</div>
+    
+</div>
+
+<div id="ggb-wrapper">
+    <div id="ggb-element"></div>
+</div>
+
+<div id="date_versiuni" data-versiuni='{{problema.versiuni_text | tojson}}' style="display: none;"></div>
+<div id="date_ai_salvate" data-ai='{{ problema.get("date_ai", []) | tojson }}' style="display: none;"></div>
+
+
+{%endblock%}
