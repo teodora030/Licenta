@@ -1,4 +1,4 @@
-from ai_agent import scoate_datele_problemei
+from ai_agent import scoate_datele_problemei, genereaza_comenzi_geogebra
 
 from flask import Flask, render_template, request, url_for, redirect, make_response, g, jsonify
 from flask_scss import Scss
@@ -77,7 +77,9 @@ def adauga_problema():
 
         document_problema = {
             "versiuni_text": [text_problema],
-            "user_id": ObjectId(g.user_id)
+            "user_id": ObjectId(g.user_id),
+            "date_ai":[None],
+            "cod_geogebra":[""]
         }
 
         rezultat = problems_collection.insert_one(document_problema)
@@ -112,7 +114,7 @@ def editeaza_problema(id_problema):
     else:
         problems_collection.update_one(
             {"_id": ObjectId(id_problema)},
-            {"$push": {"versiuni_text": text_nou_curatat}}
+            {"$push": {"versiuni_text": text_nou_curatat, "date_ai":None, "cod_geogebra": ""}}
         )
 
     # problems_collection.update_one(
@@ -122,9 +124,53 @@ def editeaza_problema(id_problema):
 
     return redirect(url_for('vizualizeaza_problema',id_problema=id_problema, mesaj="Versiune noua salvata."))
 
-# @app.route("/sterge_versiune/<id_problema", methods=['POST'])
-# @token_required
-# def sterge_versiune(id_problema):
+@app.route("/sterge_versiune/<id_problema>", methods=['POST'])
+@token_required
+def sterge_versiune(id_problema):
+    data = request.get_json()
+    index_de_sters = int(data.get('index'))
+
+    problema = problems_collection.find_one({
+        "_id": ObjectId(id_problema),
+        "user_id": ObjectId(g.user_id)
+    })
+
+    if not problema:
+        return jsonify({"status": "eroare", "mesaj": "Problema nu a fost gasita"}), 404
+    
+    versiuni = problema.get("versiuni_text",[])
+
+    #daca e singura versiune
+    if len(versiuni) <= 1:
+        problems_collection.delete_one({"_id": ObjectId(id_problema)})
+        return jsonify({"status": "succes", "redirect": url_for('index')})
+    
+    #daca sunt mai multe versiuni
+    versiuni.pop(index_de_sters)
+
+    update_data = {"versiuni_text": versiuni}
+
+        #stergem si datele problemei extrase si codul geogebra generat
+    if "date_ai" in problema:
+        date_ai = problema["date_ai"]
+        if index_de_sters < len(date_ai):
+            date_ai.pop(index_de_sters)
+        update_data["date_ai"]=date_ai
+
+    if "cod_geogebra" in problema:
+        cod_ggb = problema["cod_geogebra"]
+
+        if isinstance(cod_ggb,list) and index_de_sters<len(cod_ggb):
+            cod_ggb.pop(index_de_sters)
+            update_data["cod_geogebra"]=cod_ggb
+
+    #facem update la problema
+    problems_collection.update_one(
+        {"_id": ObjectId(id_problema)},
+        {"$set": update_data}
+    )
+
+    return jsonify({"status":"succes","redirect":url_for('vizualizeaza_problema',id_problema=id_problema)})
 
 @app.route("/api/extrage_date/<id_problema>", methods=['POST'])
 @token_required
@@ -163,6 +209,48 @@ def api_extrage_date(id_problema):
     else:
         return jsonify({"status": "eroare", "mesaj": "AI-ul nu a putut procesa problema."}), 500
 
+@app.route("/api/genereaza_figura/<id_problema>",methods=["POST"])
+@token_required
+def api_genereaza_figura(id_problema):
+    date_primite = request.get_json()
+    index_versiune = date_primite.get('index')
+
+    problema = problems_collection.find_one({
+        "_id": ObjectId(id_problema),
+        "user_id": ObjectId(g.user_id)
+    })
+
+    if not problema or "date_ai" not in problema:
+        return jsonify({"eroare": "Nu exista date extrase. Apasa Extrage Date mai intai"}),400
+    
+    date_curente = problema["date_ai"][index_versiune]
+
+    if not date_curente:
+        return jsonify({"eroare": "Nu exista date extrase pentru aceasta versiune"}),400
+    
+    lista_comenzi =  genereaza_comenzi_geogebra(date_curente)
+
+    if lista_comenzi:
+        problems_collection.update_one(
+            {"_id":ObjectId(id_problema)},
+            {"$set":{f"cod_geogebra.{index_versiune}": "\n".join(lista_comenzi)}}
+        )
+        return jsonify({"status": "succes", "comenzi": lista_comenzi})
+    else:
+        return jsonify({"status": "eroare", "mesaj": "Ai-ul nu a putut genera codul Geogebra"}),500
+
+@app.route("/api/salveaza_cod_ggb/<id_problema>",methods=['POST'])
+@token_required
+def api_salveaza_cod_ggb(id_problema):
+    date=request.get_json()
+    index_versiune=date.get('index')
+    cod_nou=date.get('cod')
+
+    problems_collection.update_one(
+        {"_id":ObjectId(id_problema)},
+        {"$set":{f"cod_geogebra.{index_versiune}": cod_nou}}
+    )
+    return jsonify({"status":"succes"})
 
 @app.route("/signup", methods=['GET','POST'])
 def signup():

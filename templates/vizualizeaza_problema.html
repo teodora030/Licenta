@@ -10,24 +10,25 @@
 
     {% include 'nav.html' %}
 
+    <!--  mesaj primit de la ruta de adauga problema -->
     {% if mesaj %}
-    <p id="mesaj-succes" style="color: green; font-weight: bold; margin-top: 15px;">{{ mesaj }}</p>
-
-    <script>
-        setTimeout(function(){
-            document.getElementById("mesaj-succes").style.display='none';
-        }, 3000);
-    </script>
-
+        <p id="mesaj-succes" style="color: green; font-weight: bold; margin-top: 15px;">{{ mesaj }}</p>
+        <script>
+            setTimeout(function(){
+                document.getElementById("mesaj-succes").style.display='none';
+            }, 3000);
+        </script>
     {% endif %}
 
-        <h1>Problema ta:</h1>        
+    <h1>Problema ta:</h1>        
 
     <p>Problema (Versiunea <span id="versiune_curenta">1</span> din <span id="total_versiuni">1</span>):</p>
 
     <div style="display: flex; gap: 10px; margin-bottom: 15px;">
         <button id="btn_prev">&#8592;</button>
         <button id="btn_next">&#8594;</button>
+
+        <button id="btn_sterge_versiune">Sterge Versiunea</button>
 
     </div>
 
@@ -41,13 +42,24 @@
     </form>
 
     <p>Datele problemei:</p>
+
+    <div id="afisare_datele_problemei">Apasa butonul pentru a extrage datele problemei</div>
+
+    <div id="afisare_cod_geogebra">Apasa butonul pentru a genera instructiunile figurii</div>
+
+    <div id="zona_cod_geogebra" style="display: none;">
+        <h3>Codul Geogebra (editeaza manual):</h3>
+        <textarea id="textarea_cod_geogebra" rows="8"></textarea>
+        <button id="btn_deseneaza">Actualizeaza desenul</button>
+    </div>
+
     <div>
         <button id="btn_extrage_date">Extrage datele problemei</button>
 
         <button id="btn_genereaza_geogebra" disabled>Genereaza figura</button>
     </div>
 
-    <div id="afisare_datele_problemei">Apasa butonul pentru a extrage datele probelemei</div>
+    
     
 </div>
 
@@ -55,8 +67,10 @@
     <div id="ggb-element"></div>
 </div>
 
+<!-- duplicarea datelor fara a le afisa pentru transmiterea lor mai usoara catre javascript -->
 <div id="date_versiuni" data-versiuni='{{problema.versiuni_text | tojson}}' style="display: none;"></div>
 <div id="date_ai_salvate" data-ai='{{ problema.get("date_ai", []) | tojson }}' style="display: none;"></div>
+<div id="date_cod_ggb" data-coduri='{{ problema.get("cod_geogebra", []) | tojson }}' style="display: none;"></div>
 
 
 {%endblock%}

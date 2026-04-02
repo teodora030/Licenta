@@ -1,4 +1,5 @@
 import os
+import json
 from dotenv import load_dotenv
 from pydantic import BaseModel, Field
 from typing import List, Dict, Optional
@@ -28,7 +29,11 @@ class ExtragereDateleProblemei(BaseModel):
     relatii_suplimentare: List[RelatieGeometrica] = Field(description="TOATE constructiile suplimentare din problema. IMPORTANT: daca un punct nou (E, F, D, M...) apare pe o latura, adauga o relatie cu tip='punct_pe_latura'.Ex: E pe AB -> tip='punct_pe_latura', nume_punct_nou='E', pe_elementul='AB'")
     cerinte: List[str] = Field(description="Lista cerintelor problemei text, ex: ['Calculeaza lungimea segmentului EF','Demonstreaza ca triunghiurile ABC si AEF sunt asemenea']")
 
+class ComenziGeogebra(BaseModel):
+    comenzi: List[str] = Field(description="Lista de comenzi text pentru GeoGebra, in ordinea logica a constructiei.")
 
+    
+    
 FEW_SHOT_EXAMPLES = """
 EXEMPLU 1:
 Problema: "In triunghiul ABC, AB=10 cm, AC=8 cm si BC=6 cm. Inaltimea din A pe BC are piciorul in D. Calculati AD."
@@ -136,4 +141,36 @@ def scoate_datele_problemei(text_problema):
         return rezultat_structurat.model_dump()
     except Exception as e:
         print(f"Eroare la LLM: {e}")
+        return None
+    
+def genereaza_comenzi_geogebra(date_problema):
+    llm = ChatAnthropic(model="claude-sonnet-4-20250514")
+    parser = PydanticOutputParser(pydantic_object=ComenziGeogebra)
+
+    prompt = ChatPromptTemplate.from_messages([
+        ("system",""" 
+            Ești un expert în GeoGebra. Primești un JSON cu datele unei probleme de geometrie.
+            Rolul tău este să generezi EXACT comenzile GeoGebra necesare pentru a desena acea figură.
+            
+            Reguli vitale:
+            1. Primul punct pune-l mereu în origine: A=(0,0).
+            2. Construiește baza inteligent (ex: dacă ai o latură AB de 5, pune B=(5,0)).
+            3. Folosește comenzi native GeoGebra (ex: Polygon(A,B,C), Midpoint(B,C), Line(A,B), Intersect(f,g)).
+            4. Ascunde etichetele obiectelor ajutătoare dacă e cazul.
+            5. Regula stricta de numire: In geogebra, punctele trebuie sa aiba nume cu majuscule (A,C,P), segmentele, dreptele, cercurile trebuie sa aiba nume cu litere mici, (ex: corect este `ac = Segment(A,C)`, greșit este `AC = Segment(A,C)`)
+            
+            Nu explica logica, returnează STRICT în formatul JSON cerut mai jos:
+            \n{format_instructions}
+                  """
+        ),
+        ("human","datele problemei sunt: \n{date_json}")
+        ]).partial(format_instructions=parser.get_format_instructions())
+
+    chain = prompt | llm | parser
+
+    try:
+        rezultat_structurat = chain.invoke({"date_json": json.dumps(date_problema)})
+        return rezultat_structurat.comenzi
+    except Exception as e:
+        print(f"Eroare la ai: {e}")
         return None
