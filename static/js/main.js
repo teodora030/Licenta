@@ -45,6 +45,7 @@ window.addEventListener('load', function () {
         const btnExtrage = document.getElementById('btn_extrage_date');
         const btnGenereaza = document.getElementById('btn_genereaza_geogebra'); 
         const afisareAI = document.getElementById('afisare_datele_problemei'); 
+        const afisareAItot = this.document.getElementById('afisare_toate_datele_problemei');
 
         // editare comenzi geogebra
         const zonaCodGgb = this.document.getElementById('zona_cod_geogebra');
@@ -77,7 +78,11 @@ window.addEventListener('load', function () {
                 let designFrumos = `
                     <h3 style="margin-top: 0; color: #2196F3;">Tip figură: <b>${dateCurenteAI.tip_figura.replace('_', ' ').toUpperCase()}</b></h3>
                     <p><b>Puncte principale:</b> ${dateCurenteAI.puncte_principale.join(', ')}</p>
+                    <p><b>Puncte mentionate:</b> ${dateCurenteAI.puncte_mentionate.join(', ')}</p>
+                    <p><b>Laturi mentionate:</b> ${dateCurenteAI.laturi_mentionate.join(', ')}</p>
                     <p><b>Laturi date:</b> ${JSON.stringify(dateCurenteAI.laturi_date)}</p>
+                    <p><b>Unghiuri mentionate:</b> ${dateCurenteAI.unghiuri_mentionate.join(', ')}</p>
+                    <p><b>Unghiuri date:</b> ${JSON.stringify(dateCurenteAI.unghiuri_date)}</p>
                 `;
 
                 // Dacă avem relații suplimentare (ex: înălțimi, bisectoare), facem o listă cu buline
