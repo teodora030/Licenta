@@ -34,7 +34,7 @@ class ComenziGeogebra(BaseModel):
 
     
     
-FEW_SHOT_EXAMPLES = """
+FEW_SHOT_EXAMPLES_DATE = """
 EXEMPLU 1:
 Problema: "In triunghiul ABC, AB=10 cm, AC=8 cm si BC=6 cm. Inaltimea din A pe BC are piciorul in D. Calculati AD."
 Raspuns corect:
@@ -132,7 +132,7 @@ def scoate_datele_problemei(text_problema):
         ),
         ("human", "Extrage datele din urmatoarea problema: {query}")
     ]
-    ).partial(format_instructions=parser.get_format_instructions(),few_shot=FEW_SHOT_EXAMPLES)
+    ).partial(format_instructions=parser.get_format_instructions(),few_shot=FEW_SHOT_EXAMPLES_DATE)
 
     chain = prompt | llm | parser
 
@@ -143,28 +143,168 @@ def scoate_datele_problemei(text_problema):
         print(f"Eroare la LLM: {e}")
         return None
     
+FEW_SHOT_EXAMPLES_COD = """
+Exemplul 1:
+Date de intrare:
+{{
+  "tip_figura": "triunghi_oarecare",
+  "puncte_principale": ["A", "B", "C"],
+  "puncte_mentionate": ["A", "B", "C", "D"],
+  "laturi_mentionate": ["AB", "AC", "BC", "AD"],
+  "laturi_date": {{"AB": 10.0, "AC": 8.0, "BC": 6.0}},
+  "unghiuri_mentionate": [],
+  "unghiuri_date": {{}},
+  "relatii_suplimentare": [
+    {{
+      "tip": "inaltime",
+      "nume_punct_nou": "D",
+      "elemente_vizate": ["BC"],
+      "detalii": "AD este inaltimea din A pe latura BC, D este piciorul inaltimii"
+    }}
+  ],
+  "cerinte": ["Calculeaza AD"]
+}}
+
+Raspuns corect:
+
+["A=(0,0)",
+"B=(10,0)",
+"c_a=Circle(A, 8)",
+"c_b=Circle(B, 6)",
+"C = Intersect(c_a, c_b, 1)",
+"abc = Polygon(A, B, C)",
+"SetVisibleInView(c_a, 1, false)",
+"SetVisibleInView(c_b, 1, false)",
+"bc = Segment(B, C)",
+"h_line = PerpendicularLine(A, bc)",
+"D = Intersect(bc, h_line)",
+"ad = Segment(A, D)",
+"SetVisibleInView(h_line, 1, false)"]
+
+
+Exemplul 2:
+Date de intrare:
+{{
+  "tip_figura": "triunghi_oarecare",
+  "puncte_principale": ["A", "B", "C"],
+  "puncte_mentionate": ["A", "B", "C", "E", "F"],
+  "laturi_mentionate": ["AB", "AC", "BC", "BE", "AF", "EF"],
+  "laturi_date": {{"AB": 24.0, "AC": 32.0, "BC": 36.0, "BE": 15.0, "AF": 12.0}},
+  "unghiuri_mentionate": [],
+  "unghiuri_date": {{}},
+  "relatii_suplimentare": [
+    {{
+      "tip": "punct_pe_latura",
+      "nume_punct_nou": "E",
+      "elemente_vizate": ["AB"],
+      "detalii": "E este pe latura AB, intre A si B"
+    }},
+    {{
+      "tip": "punct_pe_latura",
+      "nume_punct_nou": "F",
+      "elemente_vizate": ["AC"],
+      "detalii": "F este pe latura AC, intre A si C"
+    }}
+  ],
+  "cerinte": ["Calculeaza lungimea segmentului EF"]
+}}
+Mentiuni: Dacă un punct se află pe un segment și se cunoaște distanța, folosește formula vectoriala: Punct = Origine + (distanta/lungime_totala) * (Destinatie - Origine)
+Raspuns corect:
+
+["A=(0,0)",
+"B=(24,0)",
+"c_a=Circle(A, 32)",
+"c_b=Circle(B, 36)",
+"C = Intersect(c_a, c_b, 1)",
+"abc = Polygon(A, B, C)",
+"E = A + (9/24) * (B - A)",
+"F = A + (12/32) * (C - A)",
+"ef = Segment(E, F)",
+"SetVisibleInView(c_a, 1, false)",
+"SetVisibleInView(c_b, 1, false)"]
+
+
+
+Exemplul 3:
+Date de intrare:
+{{
+  "tip_figura": "triunghi_isoscel",
+  "puncte_principale": ["A", "B", "C"],
+  "puncte_mentionate": ["A", "B", "C", "M"],
+  "laturi_mentionate": ["AB", "AC", "BC", "AM"],
+  "laturi_date": {{"AB": 13.0, "AC": 13.0, "BC": 10.0}},
+  "unghiuri_mentionate": [],
+  "unghiuri_date": {{}},
+  "relatii_suplimentare": [
+    {{
+      "tip": "mijloc",
+      "nume_punct_nou": "M",
+      "elemente_vizate": ["BC"],
+      "detalii": "M este mijlocul segmentului BC"
+    }}
+  ],
+  "cerinte": ["Calculeaza AM"]
+}}
+Raspuns corect:
+
+["A=(0,0)",
+"B=(24,0)",
+"c_a=Circle(A, 32)",
+"c_b=Circle(B, 36)",
+"C = Intersect(c_a, c_b, 1)",
+"abc = Polygon(A, B, C)",
+"SetVisibleInView(c_a, 1, false)",
+"SetVisibleInView(c_b, 1, false)",
+"bc=Segment(B,C)",
+"M=Midpoint(bc)",
+"am=Segment(A,M)"]
+
+Exemplul 4:
+Date de intrare:
+{
+  "tip_figura": "paralelogram",
+  "puncte_principale": ["A", "B", "C", "D"],
+  "laturi_date": {"AB": 6.0, "AD": 4.0},
+  "unghiuri_date": {"DAB": 60.0},
+  "relatii_suplimentare": []
+}
+Raspuns corect:
+
+  [
+    "A = (0, 0)",
+    "B = (6, 0)",
+    "D = (4; 60°)",
+    "C = D + (B - A)",
+    "p1 = Polygon(A, B, C, D)"
+  ]
+
+
+""".strip()
+    
 def genereaza_comenzi_geogebra(date_problema):
     llm = ChatAnthropic(model="claude-sonnet-4-20250514")
     parser = PydanticOutputParser(pydantic_object=ComenziGeogebra)
 
     prompt = ChatPromptTemplate.from_messages([
         ("system",""" 
-            Ești un expert în GeoGebra. Primești un JSON cu datele unei probleme de geometrie.
+            Primești un JSON cu datele unei probleme de geometrie.
             Rolul tău este să generezi EXACT comenzile GeoGebra necesare pentru a desena acea figură.
             
             Reguli vitale:
             1. Primul punct pune-l mereu în origine: A=(0,0).
             2. Construiește baza inteligent (ex: dacă ai o latură AB de 5, pune B=(5,0)).
             3. Folosește comenzi native GeoGebra (ex: Polygon(A,B,C), Midpoint(B,C), Line(A,B), Intersect(f,g)).
-            4. Ascunde etichetele obiectelor ajutătoare dacă e cazul.
-            5. Regula stricta de numire: In geogebra, punctele trebuie sa aiba nume cu majuscule (A,C,P), segmentele, dreptele, cercurile trebuie sa aiba nume cu litere mici, (ex: corect este `ac = Segment(A,C)`, greșit este `AC = Segment(A,C)`)
+            4. Foloseste comenzi declarative cand construiesti figuri ale caror laturi sunt date explicit, pentru a asigura ca lungimile raman valabile (ex: "A = (0, 0)","B = (5, 0)","c_a = Circle(A, 4)","c_b = Circle(B, 3)","C = Intersect(c_a, c_b, 1)").
+            5. Ascunde etichetele obiectelor ajutătoare dacă e cazul (ex: "SetVisibleInView(c_a, 1, false)","SetVisibleInView(c_b, 1, false)").
+            6. Regula stricta de numire: In geogebra, punctele trebuie sa aiba nume cu majuscule (A,C,P), segmentele, dreptele, cercurile trebuie sa aiba nume cu litere mici, (ex: corect este `ac = Segment(A,C)`, greșit este `AC = Segment(A,C)`)
             
             Nu explica logica, returnează STRICT în formatul JSON cerut mai jos:
             \n{format_instructions}
+            EXEMPLE REZOLVATE (urmeaza acelasi pattern):{few_shot_cod}
                   """
         ),
         ("human","datele problemei sunt: \n{date_json}")
-        ]).partial(format_instructions=parser.get_format_instructions())
+        ]).partial(format_instructions=parser.get_format_instructions(),few_shot_cod=FEW_SHOT_EXAMPLES_COD)
 
     chain = prompt | llm | parser
 

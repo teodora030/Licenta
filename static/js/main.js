@@ -2,12 +2,14 @@ window.addEventListener('load', function () {
 
     const wrapper = document.getElementById('ggb-wrapper');
 
-    const containerWidth = wrapper.offsetWidth;
+    if (wrapper){
+    
+        const containerWidth = wrapper.offsetWidth;
 
     const ggbApp = new GGBApplet({
         appName: 'classic',
         width: containerWidth,
-        height: 600,
+        height: 1000,
         showToolBar: true,
         showAlgebraInput: true,
         showMenuBar: true,
@@ -113,6 +115,8 @@ window.addEventListener('load', function () {
             }
 
             const codCurent = coduriSalvate[indexCurent];
+            console.log(typeof(codCurent));
+            console.log(codCurent);
 
             if (codCurent && codCurent.trim() !==""){
                 zonaCodGgb.style.display = 'block';
@@ -263,4 +267,6 @@ window.addEventListener('load', function () {
 
         updateUI();
     }
+
+    };
 });

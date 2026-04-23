@@ -20,23 +20,22 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 
 app.config['SECRET_KEY'] = SECRET_KEY
 
-client = MongoClient(MONGODB_URI)
+client = MongoClient(MONGODB_URI, serverSelectionTimeoutMS=5000)
 db=client['geom']
 problems_collection = db['problems']
 users_collection = db['utilizatori']
-print(f"Colectii: {db.list_collection_names()}")
-# for problema in problems_collection.find():
-#     print(problema)
 
-# for utilizator in users_collection.find():
-#     print(utilizator)
-    
 try:
+    client.admin.command('ping')
+    print("Conectat la MongoDB cu succes!")
+    print(f"Colectii: {db.list_collection_names()}")
     users_collection.create_index('email',unique=True)
     users_collection.create_index('username',unique=True)
     print("Am creat indexuri pentru email si username")
-except:
-    pass
+except Exception as e:
+    print(f"NU m-am putut conecta la MongoDB: {e}")
+    problems_collection = None
+    users_collection = None
 
 def token_required(f):
     @wraps(f)
@@ -58,7 +57,12 @@ def token_required(f):
         return f(*args, **kwargs)
     return decorated
 
-
+@app.before_request
+def verifica_db():
+    try:
+        client.admin.command('ping')
+    except Exception:
+        return render_template("eroare_db.html"),503
 
 @app.route("/")
 @token_required
@@ -93,7 +97,7 @@ def adauga_problema():
 @app.route("/vizualizeaza_problema/<id_problema>")
 @token_required
 def vizualizeaza_problema(id_problema):
-    problema_gasita = problems_collection.find_one({"_id": ObjectId(id_problema)})
+    problema_gasita = problems_collection.find_one({"_id": ObjectId(id_problema), "user_id": ObjectId(g.user_id)})
 
     mesaj_din_url =  request.args.get('mesaj')
     
@@ -105,7 +109,7 @@ def editeaza_problema(id_problema):
     text_nou = request.form.get("text_problema","")
     text_nou_curatat = text_nou.strip()
 
-    problema_curenta = problems_collection.find_one({"_id": ObjectId(id_problema)})
+    problema_curenta = problems_collection.find_one({"_id": ObjectId(id_problema),"user_id": ObjectId(g.user_id)})
 
     exista_deja =  any(versiune.strip() == text_nou_curatat for versiune in problema_curenta.get("versiuni_text",[]))
 
@@ -114,7 +118,15 @@ def editeaza_problema(id_problema):
     else:
         problems_collection.update_one(
             {"_id": ObjectId(id_problema)},
-            {"$push": {"versiuni_text": text_nou_curatat, "date_ai":None, "cod_geogebra": ""}}
+            {"$push": {"versiuni_text": text_nou_curatat}}
+        )
+        problems_collection.update_one(
+            {"_id": ObjectId(id_problema)},
+            {"$push": {"date_ai":None}}
+        )
+        problems_collection.update_one(
+            {"_id": ObjectId(id_problema)},
+            {"$push": {"cod_geogebra": ""}}
         )
 
     # problems_collection.update_one(
