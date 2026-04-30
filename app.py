@@ -34,8 +34,8 @@ try:
     print("Am creat indexuri pentru email si username")
 except Exception as e:
     print(f"NU m-am putut conecta la MongoDB: {e}")
-    problems_collection = None
-    users_collection = None
+    print("Aplicatia va incerca sa se reconecteze la fiecare request.")
+
 
 def token_required(f):
     @wraps(f)
@@ -68,7 +68,7 @@ def verifica_db():
 @token_required
 def index():
 
-    toate_problemele = list(problems_collection.find({"user_id": ObjectId(g.user_id)}))
+    toate_problemele = list(problems_collection.find({"user_id": ObjectId(g.user_id)}).sort("_id", -1))
 
     return render_template("index.html",probleme=toate_problemele)
 

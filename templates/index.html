@@ -5,42 +5,39 @@
 
 {% endblock %}
 {% block body %}
-<h1>Dahsboard - Figuri de geometrie</h1>
+{% include 'nav.html' %}
 
+<div class="pagina-dashboard">
+    <div class="continut-dashboard">
+        <h1 class="titlu-pagina">Problemele tale</h1>
+        <p class="descriere-pagina">
+            {% if probleme %}
+            Ai {{ probleme|length }} {{ 'problema' if probleme|length == 1 else 'probleme'}} salvate.
+            {% else %}
+            Nu ai inca nici o problema salbata. Adauga una pentru a incepe!
+            {% endif %}
+        </p>
 
-<div class="content">
+        <div class="lista_probleme">
 
-    {% include 'nav.html' %}
-
-    <p>Aici vor aparea problemele tale salvate.</p>
-
-    {% if probleme %}
-
-    <div class="lista_probleme">
-
-        {% for problema in probleme %}
-        <div class="card_problema" style="border: 1px solid #ccc">
-            <p>{{ problema.versiuni_text[-1] | truncate(150) }}</p>
-
-            <a href="/vizualizeaza_problema/{{ problema._id }}">
-                <button>Deschide problema</button>
+            <a href="{{ url_for('adauga_problema') }}" class="card-adauga">
+                <span class="icon-plus">+</span>
+                <span class="text-adauga">Adauga problema noua</span>
             </a>
 
+
+            {% for problema in probleme %}
+            <a href="{{ url_for('vizualizeaza_problema', id_problema=problema._id) }}" class="card-problema">
+                <p class="text-problema">{{ problema.versiuni_text[-1] | truncate(150) }}</p>
+                <div class="meta-problema">
+                        <span>{{ problema.versiuni_text|length }} {{ 'versiune' if problema.versiuni_text|length == 1 else 'versiuni' }}</span>
+                        <span>{{ problema._id.generation_time.strftime('%d.%m.%Y') }}</span>
+                </div>
+            </a>
+            {% endfor %}
+
         </div>
-        {% endfor %}
-
     </div>
-    
-    {% else %}
-    <p>Nu ai nici o problema salvata</p>     
-    
-    {% endif %}
-
-
-
-    
-
-    
 </div>
 
 

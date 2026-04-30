@@ -291,8 +291,8 @@ def genereaza_comenzi_geogebra(date_problema):
             Rolul tău este să generezi EXACT comenzile GeoGebra necesare pentru a desena acea figură.
             
             Reguli vitale:
-            1. Primul punct pune-l mereu în origine: A=(0,0).
-            2. Construiește baza inteligent (ex: dacă ai o latură AB de 5, pune B=(5,0)).
+            1. Primul punct pune-l mereu în origine: P1=(0,0).
+            2. Construiește baza inteligent (ex: dacă ai o latură P1P2 de 5, pune P2=(5,0)).
             3. Folosește comenzi native GeoGebra (ex: Polygon(A,B,C), Midpoint(B,C), Line(A,B), Intersect(f,g)).
             4. Foloseste comenzi declarative cand construiesti figuri ale caror laturi sunt date explicit, pentru a asigura ca lungimile raman valabile (ex: "A = (0, 0)","B = (5, 0)","c_a = Circle(A, 4)","c_b = Circle(B, 3)","C = Intersect(c_a, c_b, 1)").
             5. Ascunde etichetele obiectelor ajutătoare dacă e cazul (ex: "SetVisibleInView(c_a, 1, false)","SetVisibleInView(c_b, 1, false)").

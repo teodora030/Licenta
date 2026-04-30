@@ -1,17 +1,13 @@
-<div>
-    
+{% block nav %}
 
-    <div>
-        <a href="/"><button>Dashboard</button></a>
-        <a href="/adauga_problema">
-            <button>Adauga problema</button>
-        </a>
+<nav class="navbar">
+        <a href="{{ url_for('index') }}" class="logo-nav">TeoGebra</a>
 
-        <a href="/logout">
-            <button>Logout</button>
-        </a>
-    </div>
+        <div class="actiuni-nav">
+            <a href="{{ url_for('logout') }}" class="link-logout">
+                Deconectare
+            </a>
 
-
-
-</div>
+        </div>
+</nav>
+{% endblock %}

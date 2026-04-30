@@ -1,6 +1,8 @@
-body{
-    background-color: wheat;
-}
+@import 'variabile';
+@import 'baza';
+@import 'formulare';
+@import 'nav';
+@import 'dashboard';
 
 #ggb-element{
     width: 100%;

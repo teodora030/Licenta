@@ -1,0 +1,39 @@
+.navbar{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: $spatiu-md $spatiu-xl;
+    background: $alb;
+    border-bottom: 1px solid $border;
+
+    .logo-nav {
+        font-size: 1.5rem;
+        font-weight: 400;
+        color: $text-principal;
+        letter-spacing: -0.02em;
+        text-decoration: none;
+
+        &:hover {
+            color: $accent;
+        }
+    }
+
+    .actiuni-nav {
+        display: flex;
+        gap: $spatiu-md;
+        align-items: center;
+    }
+
+    .link-logout {
+        color: $text-secundar;
+        font-size: 0.9rem;
+        text-decoration: none;
+        padding: $spatiu-sm $spatiu-md;
+        transition: all $tranzitie;
+
+        &:hover {
+            background: $fundal;
+            color: $text-principal;
+        }
+    }
+}

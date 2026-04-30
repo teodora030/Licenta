@@ -1,0 +1,124 @@
+.pagina-dashboard {
+    min-height: calc(100vh - 65px );
+    background: $fundal;
+    padding: $spatiu-2xl $spatiu-xl;
+}
+
+.continut-dashboard {
+    max-width: 1600px;
+    margin: 0 auto;
+
+    .titlu-pagina {
+        font-size: 1.8rem;
+        font-weight: 400;
+        color: $text-principal;
+        margin-bottom: $spatiu-sm;
+        letter-spacing: -0.02em;
+    }
+
+    .descriere-pagina {
+        color: $text-secundar;
+        font-size: 1rem;
+        margin-bottom: $spatiu-2xl;
+    }
+}
+
+.lista_probleme {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: $spatiu-2xl;
+}
+
+.card-problema {
+    display: flex;
+    flex-direction: column;
+    background: $alb;
+    border: 1px solid $border;
+    border-radius: $raza-border;
+    padding: $spatiu-lg;
+    text-decoration: none;
+    color: inherit;
+    aspect-ratio: 3/4;
+    max-width: 600px;
+    transition: all $tranzitie;
+
+    &:hover {
+        border-color: $accent;
+        box-shadow: 0 4px 12px rgba($accent, 0.08);
+        transform: translateY(-2px);
+    }
+
+    .text-problema {
+        flex: 1;
+        font-size: 1.4rem;
+        line-height: 1.5;
+        color: $text-principal;
+        margin-bottom: $spatiu-md;
+ 
+        // Truncare la 4 rânduri
+        display: -webkit-box;
+        -webkit-line-clamp: 4;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .meta-problema {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.8125rem;
+        color: $text-secundar;
+        padding-top: $spatiu-md;
+        border-top: 1px solid $border;
+    }
+}
+
+.card-adauga {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: $accent-light;
+    border: 2px dashed $border-focus;
+    border-radius: $raza-border;
+    padding: $spatiu-lg;
+    text-decoration: none;
+    color: $accent;
+    max-height: 180px;
+    aspect-ratio: 2;
+    transition: all $tranzitie;
+ 
+    &:hover {
+        background: $alb;
+        border-color: $accent;
+        border-style: solid;
+        transform: translateY(-2px);
+    }
+ 
+    .icon-plus {
+        font-size: 2.5rem;
+        font-weight: 300;
+        line-height: 1;
+        margin-bottom: $spatiu-sm;
+    }
+
+    .text-adauga {
+        font-size: 0.9375rem;
+        font-weight: 500;
+    }
+
+}
+
+.mesaj-gol {
+    text-align: center;
+    padding: $spatiu-3xl $spatiu-xl;
+    color: $text-secundar;
+    background: $accent-light;
+    border-radius: $raza-border;
+    border: 1px dashed $border;
+ 
+    p {
+        margin-bottom: $spatiu-md;
+        font-size: 1rem;
+    }
+}

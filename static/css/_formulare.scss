@@ -1,0 +1,167 @@
+// Container centrat pentru formulare
+.pagina-formular {
+    color: $fundal;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    min-height: 100vh;
+    padding: $spatiu-xl;
+
+    background-color: $fundal;
+    background-image: 
+        linear-gradient(to right,  rgba(30,80,150,0.6) 2px, transparent 1px),
+        linear-gradient(to bottom,  rgba(30,80,150,0.6) 2px, transparent 1px),
+
+        linear-gradient(to right,  rgba(30,80,150,0.15) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(30,80,150,0.15) 1px, transparent 1px);
+    background-size: 
+        100% 100%,
+        100% 100%,
+        40px 40px,
+        40px 40px;
+    background-position: 160px 0, 0 800px, 0 0 ,0 0;
+    background-repeat: no-repeat no-repeat repeat repeat;
+
+    @media (max-height: 800px) {
+        background-image:
+            linear-gradient(to right, rgba(30,80,150,0.6) 2px, transparent 1px),
+            linear-gradient(to right, rgba(30,80,150,0.15) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(30,80,150,0.15) 1px, transparent 1px);
+        background-size: 100% 100%, 40px 40px, 40px 40px;
+        background-position: 160px 0, 0 0, 0 0;
+        background-repeat: no-repeat, repeat, repeat;
+    }
+}
+
+.logo-app {
+    font-size: 2.5rem;
+    font-weight: 400;
+    color: $text-principal;
+    letter-spacing: -0.02em;
+    margin: 0;
+}
+
+.card-formular {
+    background: $alb;
+    border: 1px solid $border;
+    border-radius: $raza-border;
+    padding: $spatiu-3xl $spatiu-2xl;
+    width: 100%;
+    max-width: $latime-form;
+
+    .titlu-formular {
+        text-align: center;
+        margin-bottom: $spatiu-xs;
+    }
+
+    .subtitlu-formular {
+        text-align: center;
+        color: $text-secundar;
+        font-size: 0.875rem;
+        margin-bottom: $spatiu-2xl;
+    }
+}
+
+// Câmpuri de input
+.camp {
+    margin-bottom: $spatiu-lg;
+
+    label {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: $text-principal;
+        margin-bottom: $spatiu-xs;
+    }
+
+    input {
+        width: 100%;
+        padding: 0.625rem 0.75rem;
+        border: 1px solid $border;
+        border-radius: $raza-border-sm;
+        font-family: $font-body;
+        font-size: 0.9375rem;
+        color: $text-principal;
+        background: $alb;
+        transition: border-color $tranzitie, box-shadow $tranzitie;
+
+        &::placeholder {
+            color: $text-secundar;
+        }
+
+        &:focus {
+            outline: none;
+            border-color: $border-focus;
+            box-shadow: 0 0 0 3px rgba($accent, 0.1);
+        }
+    }
+}
+
+// Butoane
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.625rem $spatiu-lg;
+    border: none;
+    border-radius: $raza-border-sm;
+    font-family: $font-body;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all $tranzitie;
+
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+}
+
+.btn-principal {
+    @extend .btn;
+    width: 100%;
+    background: $accent;
+    color: $alb;
+
+    &:hover:not(:disabled) {
+        background: $accent-hover;
+    }
+}
+
+.btn-secundar {
+    @extend .btn;
+    background: $alb;
+    color: $text-principal;
+    border: 1px solid $border;
+
+    &:hover:not(:disabled) {
+        background: $fundal;
+        border-color: darken($border, 10%);
+    }
+}
+
+.btn-pericol {
+    @extend .btn;
+    background: $alb;
+    color: $eroare;
+    border: 1px solid $border;
+
+    &:hover:not(:disabled) {
+        background: $eroare-bg;
+        border-color: $eroare;
+    }
+}
+
+// Link sub formular
+.link-formular {
+    text-align: center;
+    margin-top: $spatiu-xl;
+    font-size: 0.875rem;
+    color: $text-secundar;
+
+    a {
+        font-weight: 500;
+    }
+}
