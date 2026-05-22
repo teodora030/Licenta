@@ -2,6 +2,7 @@
 
 {% block head %}
 <title>Vizualizare - TeoGebra</title>
+<script src="{{ url_for('static', filename='js/categorii.js') }}"></script>
 {% endblock %}
 
 {%block body%}
@@ -20,11 +21,44 @@
         </script>
     {% endif %}
 
-    <h1>Problema ta:</h1>        
+    <div id="titlu-problema">
+        <h1>Problema ta:</h1> 
+        <div id="afisare-categorii">
+        <p>
+            <b>Clasa:</b> <span id="text-clasa">{{ problema.clasa }}</span>
+        </p>
+        <p>
+            <b>Subcapitol:</b> <span id="text-subcapitol">{{ problema.subcapitol }}</span>
+        </p>
+        <button type="button" id="btn-editeaza-categorii">Editează categoriile</button></div>
+        <div id="form-categorii" style="display: none;">
+            <div class="camp">
+            <label for="clasa">Clasa:</label>
+            <select id="clasa" data-valoare="{{ problema.clasa }}">
+                <option value="">-- Alege --</option>
+            </select>
+        </div>
+        
+        <div class="camp">
+            <label for="subcapitol">Subcapitol:</label>
+            <select id="subcapitol" data-valoare="{{ problema.subcapitol }}">
+                <option value="">-- Alege --</option>
+            </select>
+        </div>
+        
+        <button type="button" id="btn-salveaza-categorii">Salvează</button>
+        <button type="button" id="btn-anuleaza-categorii">Anulează</button>
 
-    <p>Problema (Versiunea <span id="versiune_curenta">1</span> din <span id="total_versiuni">1</span>):</p>
+        </div>
+        
+    </div>
+          
 
-    <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+    
+
+    <div id="versiuni" style="display: flex; gap: 10px; margin-bottom: 15px;">
+
+        <p>Versiunea <span id="versiune_curenta">1</span> din <span id="total_versiuni">1</span>:</p>
         <button id="btn_prev">&#8592;</button>
         <button id="btn_next">&#8594;</button>
 
@@ -62,7 +96,7 @@
     
 </div>
 
-<div id="ggb-wrapper">
+<div id="ggb-wrapper" data-tip="{{ problema.tip_figura }}">
     <div id="ggb-element"></div>
 </div>
 

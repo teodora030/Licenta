@@ -5,9 +5,11 @@ window.addEventListener('load', function () {
     if (wrapper){
     
         const containerWidth = wrapper.offsetWidth;
+        const tipFigura = wrapper.dataset.tip;
+        const appName = tipFigura === "3d" ? "3d" : "graphing"
 
     const ggbApp = new GGBApplet({
-        appName: 'classic',
+        appName: appName,
         width: containerWidth,
         height: 1000,
         showToolBar: true,
@@ -266,6 +268,64 @@ window.addEventListener('load', function () {
         };
 
         updateUI();
+    }
+
+
+    //butoane categorie problema
+    const btnEditCateg = document.getElementById('btn-editeaza-categorii');
+    const btnSalveazaCateg = document.getElementById('btn-salveaza-categorii');
+    const btnAnuleazaCateg = document.getElementById('btn-anuleaza-categorii');
+
+    if (btnEditCateg) {
+        const afisare = document.getElementById('afisare-categorii');
+        const form = document.getElementById('form-categorii');
+        
+        btnEditCateg.addEventListener('click', () => {
+            afisare.style.display = 'none';
+            form.style.display = 'block';
+        });
+        
+        btnAnuleazaCateg.addEventListener('click', () => {
+            form.style.display = 'none';
+            afisare.style.display = 'block';
+        });
+        
+        btnSalveazaCateg.addEventListener('click', async () => {
+            const clasa = document.getElementById('clasa').value;
+            const subcapitol = document.getElementById('subcapitol').value;
+            
+            if (!clasa || !subcapitol) {
+                alert("Alege clasa și subcapitolul!");
+                return;
+            }
+            
+            const idProblema = window.location.pathname.split('/').pop();
+            
+            try {
+                const response = await fetch(`/api/actualizeaza_categorii/${idProblema}`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ clasa, subcapitol })
+                });
+                
+                const data = await response.json();
+                
+                if (data.status === "succes") {
+                    // actualizează textul afișat
+                    document.getElementById('text-clasa').textContent = data.clasa;
+                    document.getElementById('text-subcapitol').textContent = data.subcapitol;
+                    
+                    // ascunde form, afișează textul
+                    form.style.display = 'none';
+                    afisare.style.display = 'block';
+                } else {
+                    alert("Eroare: " + data.mesaj);
+                }
+            } catch (error) {
+                console.error("Eroare:", error);
+                alert("Eroare de comunicare cu serverul.");
+            }
+        });
     }
 
     };

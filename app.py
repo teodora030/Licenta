@@ -1,18 +1,29 @@
 from ai_agent import scoate_datele_problemei, genereaza_comenzi_geogebra
+from categorii import CATEGORII
 
 from flask import Flask, render_template, request, url_for, redirect, make_response, g, jsonify
 from flask_scss import Scss
 from dotenv import load_dotenv
 from pymongo import MongoClient
+from pymongo.errors import DuplicateKeyError
 from bson.objectid import ObjectId
 from functools import wraps
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 import bcrypt
 import jwt
-import datetime
+from datetime import datetime,timezone,timedelta
 import os
+import smtplib
+import ssl
+import secrets
+import re
+from itsdangerous import URLSafeTimedSerializer,SignatureExpired, BadSignature
+
 load_dotenv()
 
 app = Flask(__name__)
+
 Scss(app)
 
 MONGODB_URI = os.getenv('MONGODB_URI')
@@ -35,6 +46,50 @@ try:
 except Exception as e:
     print(f"NU m-am putut conecta la MongoDB: {e}")
     print("Aplicatia va incerca sa se reconecteze la fiecare request.")
+
+app.config["MAIL_SERVER"] = os.environ["MAIL_SERVER"]
+app.config["MAIL_PORT"] = int(os.environ["MAIL_PORT"])
+app.config["MAIL_USERNAME"] = os.environ["MAIL_USERNAME"]
+app.config["MAIL_PASSWORD"] = os.environ["MAIL_PASSWORD"]
+app.config["MAIL_USE_TLS"] = os.environ["MAIL_USE_TLS"] == "True"
+app.config["MAIL_DEFAULT_SENDER"] = os.environ["MAIL_DEFAULT_SENDER"]
+app.config["SECRET_KEY_2"]=os.environ["SECRET_KEY_2"]
+serializer = URLSafeTimedSerializer(app.config["SECRET_KEY_2"])
+
+def email_valid(email):
+    if not email or not isinstance(email,str):
+        return False
+    pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9._%+-]+\.[a-zA-Z]{2,}$"
+    return re.match(pattern,email) is not None
+
+def trimite_email(destinatar, subiect, continut_text, continut_html=None):
+    """
+    Trimite un email folosind smtplib direct.
+    Returneaza (True, None) la succes sau (False, mesaj_eroare) la esec.
+    """
+    expeditor = os.environ["MAIL_USERNAME"]
+    parola = os.environ["MAIL_PASSWORD"].replace(" ", "")
+    
+    msg = MIMEMultipart("alternative")
+    msg["Subject"] = subiect
+    msg["From"] = expeditor
+    msg["To"] = destinatar
+    
+    # versiune text (fallback)
+    msg.attach(MIMEText(continut_text, "plain"))
+    
+    # versiune HTML (preferată, dacă există)
+    if continut_html:
+        msg.attach(MIMEText(continut_html, "html"))
+    
+    try:
+        with smtplib.SMTP("smtp.gmail.com", 587, timeout=10) as server:
+            server.starttls(context=ssl.create_default_context())
+            server.login(expeditor, parola)
+            server.sendmail(expeditor, destinatar, msg.as_string())
+        return True, None
+    except Exception as e:
+        return False, f"{type(e).__name__}: {e}"
 
 
 def token_required(f):
@@ -72,18 +127,28 @@ def index():
 
     return render_template("index.html",probleme=toate_problemele)
 
+@app.route("/api/categorii")
+def get_categorii():
+    return jsonify(CATEGORII)
+
 @app.route("/adauga_problema", methods=['GET','POST'])
 @token_required
 def adauga_problema():
 
     if request.method =='POST':
         text_problema = request.form.get("text_problema")
+        clasa = request.form.get("clasa")
+        subcapitol = request.form.get("subcapitol")
+        tip_figura = request.form.get("tip_aplicatie")
 
         document_problema = {
             "versiuni_text": [text_problema],
             "user_id": ObjectId(g.user_id),
             "date_ai":[None],
-            "cod_geogebra":[""]
+            "cod_geogebra":[""],
+            "clasa":clasa,
+            "subcapitol":subcapitol,
+            "tip_figura":tip_figura
         }
 
         rezultat = problems_collection.insert_one(document_problema)
@@ -264,26 +329,93 @@ def api_salveaza_cod_ggb(id_problema):
     )
     return jsonify({"status":"succes"})
 
+@app.route("/api/actualizeaza_categorii/<id_problema>",methods=["POST"])
+@token_required
+def actualizeaza_categorii(id_problema):
+    data = request.get_json()
+    clasa = data.get("clasa")
+    subcapitol = data.get("subcapitol")
+    
+    # validare
+    if clasa not in CATEGORII:
+        return jsonify({"status": "eroare", "mesaj": "Clasă invalidă"}), 400
+    if subcapitol not in CATEGORII[clasa]:
+        return jsonify({"status": "eroare", "mesaj": "Subcapitol invalid"}), 400
+    
+    db.problems.update_one(
+        {"_id": ObjectId(id_problema)},
+        {"$set": {"clasa": clasa, "subcapitol": subcapitol}}
+    )
+    
+    return jsonify({"status": "succes", "clasa": clasa, "subcapitol": subcapitol})
+
 @app.route("/signup", methods=['GET','POST'])
 def signup():
     if request.method=='POST':
-        username = request.form.get("username")
-        email = request.form.get("email")
-        parola_clara = request.form.get("password")
-    
+        username = request.form.get("username","").strip()
+        email = request.form.get("email","").strip().lower()
+        parola_clara = request.form.get("password","")
+        parola_confirmare = request.form.get("password_confirm","")
+
+        prenume = request.form.get("prenume")
+        nume_familie=request.form.get("nume_familie")
+        clasa = request.form.get("clasa","")
+
+        if not username or not email or not parola_clara:
+            return render_template("signup.html", eroare="Toate câmpurile obligatorii sunt necesare")
+        
+        if len(parola_clara) < 8:
+            return render_template("signup.html", eroare="Parola trebuie să aibă minim 8 caractere")
+        if parola_clara != parola_confirmare:
+            return render_template("signup.html", eroare="Parolele nu se potrivesc")
+        
+        if not email_valid(email):
+            return render_template("signup.html", eroare="Format email invalid")
+        
+        if users_collection.find_one({"email":email}):
+            return render_template("signup.html", eroare="Email deja inregistrat")
+        
+        if users_collection.find_one({"username":username}):
+            return render_template("signup.html", eroare="Username deja folosit")
+
         parola_criptata = bcrypt.hashpw(parola_clara.encode('utf-8'), bcrypt.gensalt())
+
+
 
         utilizator_nou = {
             "username": username,
             "email": email,
-            "parola": parola_criptata
+            "parola": parola_criptata,
+            "activ": True,
+            "clasa":clasa,
+            "data_creare":datetime.now(timezone.utc),
+            "email_confirmat":False,
+            "full_name": {
+                "prenume":prenume,
+                "nume_familie":nume_familie
+            },
+            "rol":"elev",
+            "ultima_logare":None,
+            "data_modificare":None
         }
         try:
             users_collection.insert_one(utilizator_nou)
-            return redirect(url_for('login', mesaj="Cont creat cu succes! Acum te poți loga."))
+            token = serializer.dumps(email, salt="confirmare-email")
+            link = f"{os.environ['APP_URL']}/confirma_email/{token}"
+            
+            trimite_email(
+                destinatar=email,
+                subiect="Confirmă-ți contul GeoTutor",
+                continut_text=f"Salut! Confirmă contul aici: {link}",
+                continut_html=f'<p>Salut! Confirmă contul <a href="{link}">apăsând aici</a>.</p>'
+            )
+            
+            return redirect(url_for('login', mesaj="Cont creat! Verifică email-ul pentru confirmare."))
+        except DuplicateKeyError:
+            return render_template("signup.html", eroare="Email sau username deja folosit")
         except Exception as e:
-
-            return render_template("signup.html", eroare="Email-ul sau username-ul există deja!")
+            print(f"Eroare neașteptată: {type(e).__name__}: {e}")
+            return render_template("signup.html", eroare="A aparut o eroare. Te rog reincearca!")
     
     return render_template("signup.html")
 
@@ -291,27 +423,45 @@ def signup():
 def login():
 
     if request.method=='POST':
-        email_introdus = request.form.get("email")
-        parola_introdusa = request.form.get("password")
+        email_introdus = request.form.get("email","").strip().lower()
+        parola_introdusa = request.form.get("password","")
+
+        if not email_introdus or not parola_introdusa:
+            return render_template("login.html", eroare="Completează toate câmpurile")
 
         utilizator_gasit = users_collection.find_one({"email": email_introdus})
 
-        if utilizator_gasit:
-            parola_din_db = utilizator_gasit['parola']
+        mesaj_credentiale = "Email sau parolă incorecte"
 
-            if bcrypt.checkpw(parola_introdusa.encode('utf-8'), parola_din_db):
-                token = jwt.encode({
-                    'user_id': str(utilizator_gasit['_id']),
-                    'exp': datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=24)
-                }, app.config['SECRET_KEY'], algorithm='HS256')
+        if not utilizator_gasit:
+            return render_template("login.html", eroare=mesaj_credentiale)
+        
+        if not bcrypt.checkpw(parola_introdusa.encode('utf-8'), utilizator_gasit['parola']):
+            return render_template("login.html", eroare=mesaj_credentiale)
+        
+        if not utilizator_gasit.get('activ', True):
+            return render_template("login.html", eroare="Contul tău este dezactivat. Contactează administratorul.")
 
-                raspuns = make_response(redirect(url_for('index')))
-                raspuns.set_cookie('jwt_token', token, httponly=True)
-                return raspuns
-            else:
-                return render_template("login.html", eroare="Parola este incorectă!")
-        else:
-            return render_template("login.html", eroare="Nu există niciun cont cu acest email!")
+        if not utilizator_gasit.get('email_confirmat', False):
+            return render_template("login.html", eroare="Trebuie să-ți confirmi email-ul înainte de a te loga.",afiseaza_retrimite=True,email=email_introdus)
+        
+       
+        token = jwt.encode({'user_id': str(utilizator_gasit['_id']),'exp': datetime.now(timezone.utc) + timedelta(hours=24)}, app.config['SECRET_KEY'], algorithm='HS256')
+
+        users_collection.update_one(
+            {"_id": utilizator_gasit['_id']},
+            {"$set": {"ultima_logare": datetime.now(timezone.utc)}}
+        )
+
+        raspuns = make_response(redirect(url_for('index')))
+        raspuns.set_cookie(
+            'jwt_token', 
+            token, 
+            httponly=True,
+            samesite='Lax',
+            max_age=86400  # 24h în secunde
+        )
+        return raspuns
 
     mesaj_succes = request.args.get("mesaj")
     return render_template("login.html", mesaj=mesaj_succes)    
@@ -323,6 +473,107 @@ def logout():
     raspuns.delete_cookie('jwt_token')
 
     return raspuns
+
+@app.route("/confirma_email/<token>")
+def confirma_email(token):
+    try:
+        email = serializer.loads(token, salt="confirmare-email", max_age=86400)
+    except SignatureExpired:
+        return "Linkul a expirat. Te rog cere unul nou."
+    except BadSignature:
+        return "Link invalid."
+    
+    users_collection.update_one(
+        {"email": email},
+        {"$set": {"email_confirmat": True}}
+    )
+    
+    return redirect(url_for("login", mesaj="Email confirmat! Te poți loga acum."))
+
+@app.route("/retrimite_confirmare", methods=["POST"])
+def retrimite_confirmare():
+    email = request.form.get("email", "").strip().lower()
+    user = users_collection.find_one({"email": email})
+    
+    # mesaj generic indiferent dacă userul există sau nu (securitate)
+    mesaj_generic = "Dacă există un cont cu această adresă, vei primi un email."
+    
+    if not user or user.get("email_confirmat"):
+        return render_template("verifica_email.html", mesaj=mesaj_generic)
+    
+    token = serializer.dumps(email, salt="confirmare-email")
+    link = f"{os.environ['APP_URL']}/confirma_email/{token}"
+    
+    trimite_email(
+        destinatar=email,
+        subiect="Confirmă-ți contul GeoTutor",
+        continut_text=f"Linkul tău de confirmare: {link}",
+        continut_html=f'<a href="{link}">Confirmă email-ul</a>'
+    )
+    
+    return render_template("verifica_email.html", mesaj=mesaj_generic)
+
+@app.route("/am_uitat_parola", methods=["GET", "POST"])
+def am_uitat_parola():
+    if request.method == "POST":
+        email = request.form.get("email", "").strip().lower()
+        
+        mesaj_generic = "Dacă există un cont cu această adresă, vei primi un email."
+        
+        utilizator = users_collection.find_one({"email": email})
+        
+        # trimitem email DOAR dacă userul există și e activ + confirmat
+        if utilizator and utilizator.get("activ", True) and utilizator.get("email_confirmat"):
+            token = serializer.dumps(email, salt="resetare-parola")
+            link = f"{os.environ['APP_URL']}/reseteaza_parola/{token}"
+            
+            trimite_email(
+                destinatar=email,
+                subiect="Resetare parolă GeoTutor",
+                continut_text=f"Resetează parola aici: {link}\n\nLinkul expiră în 1 oră.",
+                continut_html=f'<p><a href="{link}">Resetează parola</a></p><p>Linkul expiră în 1 oră.</p>'
+            )
+        
+        # mesaj generic indiferent de rezultat (securitate)
+        return render_template("am_uitat_parola.html", mesaj=mesaj_generic)
+    
+    return render_template("am_uitat_parola.html")
+
+@app.route("/reseteaza_parola/<token>", methods=["GET", "POST"])
+def reseteaza_parola(token):
+    try:
+        email = serializer.loads(token, salt="resetare-parola", max_age=3600)
+    except SignatureExpired:
+        return "Linkul a expirat. Cere unul nou."
+    except BadSignature:
+        return "Link invalid."
+    
+    if request.method == "POST":
+        parola_noua = request.form.get("parola_noua", "")
+        parola_confirmare = request.form.get("parola_confirmare", "")
+        
+        if len(parola_noua) < 8:
+            return render_template("reseteaza_parola.html", token=token,
+                                   eroare="Parola trebuie să aibă minim 8 caractere")
+        
+        if parola_noua != parola_confirmare:
+            return render_template("reseteaza_parola.html", token=token,
+                                   eroare="Parolele nu se potrivesc")
+        
+        parola_hash = bcrypt.hashpw(parola_noua.encode("utf-8"), bcrypt.gensalt())
+        
+        users_collection.update_one(
+            {"email": email},
+            {"$set": {
+                "parola": parola_hash,
+                "data_modificare": datetime.now(timezone.utc)
+            }}
+        )
+        
+        return redirect(url_for("login", mesaj="Parola a fost resetată! Te poți loga acum."))
+    
+    return render_template("reseteaza_parola.html", token=token)
+
 
 
 

@@ -2,6 +2,7 @@
 
 {% block head %}
 <title>Adaugă Problema - TeoGebra</title>
+<script src="{{ url_for('static', filename='js/categorii.js') }}"></script>
 {% endblock %}
 
 {% block body %}
@@ -12,6 +13,34 @@
     <form action="/adauga_problema" method="POST" class="form-problema">
         <textarea name="text_problema" id="content" 
                   placeholder="Fie un triunghi ABC..." required></textarea>
+
+        <div class="camp">
+            <label for="clasa">Clasa:</label>
+            <select id="clasa" name="clasa" required>
+                <option value="">Alege clasa</option>
+            </select>
+        </div>
+
+        <div class="camp">
+            <label for="subcapitol">Subcapitol:</label>
+            <select id="subcapitol" name="subcapitol" required disabled>
+                <option value="">Alege intai clasa</option>
+            </select>
+        </div>
+
+        <div class="camp">
+            <label>Tipul figurii:</label>
+            <div class="radio-grup">
+                <label>
+                    <input type="radio" name="tip_aplicatie" value="2d" required>
+                    2D (figură plană)
+                </label>
+                <label>
+                    <input type="radio" name="tip_aplicatie" value="3d" required>
+                    3D (figură in spatiu)
+                </label>
+            </div>
+        </div>
         <button type="submit">Salvează problema</button>
     </form>
 </div>

@@ -126,7 +126,7 @@ a:hover {
 }
 .camp label {
   display: block;
-  font-size: 0.875rem;
+  font-size: 1rem;
   font-weight: 500;
   color: #1a1a1a;
   margin-bottom: 0.25rem;
@@ -137,7 +137,7 @@ a:hover {
   border: 1px solid #e5e7eb;
   border-radius: 6px;
   font-family: "BJCree", sans-serif;
-  font-size: 0.9375rem;
+  font-size: 1rem;
   color: #1a1a1a;
   background: #ffffff;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
@@ -158,11 +158,11 @@ a:hover {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0.625rem 1.5rem;
+  padding: 0.6rem 1.5rem;
   border: none;
   border-radius: 6px;
   font-family: "BJCree", sans-serif;
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -204,7 +204,7 @@ a:hover {
 .link-formular {
   text-align: center;
   margin-top: 2rem;
-  font-size: 0.875rem;
+  font-size: 0.8rem;
   color: #3e4145;
 }
 .link-formular a {
@@ -250,6 +250,20 @@ a:hover {
   min-height: calc(100vh - 65px);
   background: #dff4f8;
   padding: 3rem 2rem;
+  color: #dff4f8;
+  background-color: #dff4f8;
+  background-image: linear-gradient(to right, rgba(30, 80, 150, 0.6) 2px, transparent 1px), linear-gradient(to bottom, rgba(30, 80, 150, 0.6) 2px, transparent 1px), linear-gradient(to right, rgba(30, 80, 150, 0.15) 1px, transparent 1px), linear-gradient(to bottom, rgba(30, 80, 150, 0.15) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+  background-position: 160px 0, 0 800px, 0 0, 0 0;
+  background-repeat: no-repeat no-repeat repeat repeat;
+}
+@media (max-height: 800px) {
+  .pagina-dashboard {
+    background-image: linear-gradient(to right, rgba(30, 80, 150, 0.6) 2px, transparent 1px), linear-gradient(to right, rgba(30, 80, 150, 0.15) 1px, transparent 1px), linear-gradient(to bottom, rgba(30, 80, 150, 0.15) 1px, transparent 1px);
+    background-size: 100% 100%, 40px 40px, 40px 40px;
+    background-position: 160px 0, 0 0, 0 0;
+    background-repeat: no-repeat, repeat, repeat;
+  }
 }
 
 .continut-dashboard {
@@ -261,12 +275,14 @@ a:hover {
   font-weight: 400;
   color: #1a1a1a;
   margin-bottom: 0.5rem;
+  margin-left: 9rem;
   letter-spacing: -0.02em;
 }
 .continut-dashboard .descriere-pagina {
   color: #3e4145;
   font-size: 1rem;
   margin-bottom: 3rem;
+  margin-left: 9rem;
 }
 
 .lista_probleme {

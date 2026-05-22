@@ -27,8 +27,35 @@
 
             <div class="camp">
                 <label for="password">Parolă:</label><br>
-                <input type="password" id="password" name="password" required>
+                <input type="password" id="password" name="password" required minlength="8">
             </div>
+
+            <div class="camp">
+                <label for="password_confirm">Confirma Parola:</label><br>
+                <input type="password" id="password_confirm" name="password_confirm" required minlength="8">
+            </div>
+
+            <div class="camp">
+                <label for="prenume">Prenume:</label>
+                <input type="text" id="prenume" name="prenume">
+            </div>
+
+            <div class="camp">
+                <label for="nume_familie">Nume de familie(opțional):</label>
+                <input type="text" id="nume_familie" name="nume_familie">
+            </div>
+
+            <div class="camp">
+                <label for="clasa_curenta">Clasa curentă (opțional):</label>
+                <select id="clasa_curenta" name="clasa_curenta">
+                    <option value="">-- Nu specific --</option>
+                    <!-- populat dinamic de categorii.js dacă vrei -->
+                </select>
+            </div>
+
+            {% if eroare %}
+                <p class="eroare">{{ eroare }}</p>
+            {% endif %}
 
             <button type="submit" class="btn-principal">Creează contul</button>
         </form>

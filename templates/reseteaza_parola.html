@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block body %}
+<div class="card-centrat">
+    <h2>Setează o parolă nouă</h2>
+    
+    <form action="/reseteaza_parola/{{ token }}" method="POST">
+        <div class="camp">
+            <label for="parola_noua">Parolă nouă (minim 8 caractere):</label>
+            <input type="password" id="parola_noua" name="parola_noua" required minlength="8">
+        </div>
+        
+        <div class="camp">
+            <label for="parola_confirmare">Confirmă parola:</label>
+            <input type="password" id="parola_confirmare" name="parola_confirmare" required minlength="8">
+        </div>
+        
+        {% if eroare %}
+            <p class="eroare">{{ eroare }}</p>
+        {% endif %}
+        
+        <button type="submit">Salvează</button>
+    </form>
+</div>
+{% endblock %}

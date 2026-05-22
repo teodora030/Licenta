@@ -2,7 +2,8 @@
 
 {% block head %}
 <title>Dashboard - TeoGebra</title>
-
+<script src="{{ url_for('static', filename='js/categorii.js') }}"></script>
+<script src="{{ url_for('static', filename='js/filtrare.js') }}"></script>
 {% endblock %}
 {% block body %}
 {% include 'nav.html' %}
@@ -18,6 +19,20 @@
             {% endif %}
         </p>
 
+        <div class="filtre">
+            <select id="filtru-clasa">
+                <option value="">Toate clasele</option>
+            </select>
+            <select id="filtru-subcapitol">
+                <option value="">Toate subcapitolele</option>
+            </select>
+            <select id="filtru-tip">
+                <option value="">Toate</option>
+                <option value="2d">Doar 2D</option>
+                <option value="3d">Doar 3D</option>
+            </select>
+        </div>
+
         <div class="lista_probleme">
 
             <a href="{{ url_for('adauga_problema') }}" class="card-adauga">
@@ -27,16 +42,23 @@
 
 
             {% for problema in probleme %}
-            <a href="{{ url_for('vizualizeaza_problema', id_problema=problema._id) }}" class="card-problema">
+            <a href="{{ url_for('vizualizeaza_problema', id_problema=problema._id) }}" class="card-problema" data-clasa="{{ problema.clasa }}" data-subcapitol="{{ problema.subcapitol }}" data-tip="{{ problema.tip_figura}}">
                 <p class="text-problema">{{ problema.versiuni_text[-1] | truncate(150) }}</p>
                 <div class="meta-problema">
                         <span>{{ problema.versiuni_text|length }} {{ 'versiune' if problema.versiuni_text|length == 1 else 'versiuni' }}</span>
+                        <span>{{ problema.clasa }} • {{ problema.subcapitol }}</span>
                         <span>{{ problema._id.generation_time.strftime('%d.%m.%Y') }}</span>
+                        
                 </div>
             </a>
             {% endfor %}
 
         </div>
+
+        <p id="mesaj-niciun-rezultat" style="display: none;">
+            Nu există probleme care să corespundă filtrelor selectate.
+        </p>
+
     </div>
 </div>
 

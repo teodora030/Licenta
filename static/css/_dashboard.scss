@@ -2,6 +2,34 @@
     min-height: calc(100vh - 65px );
     background: $fundal;
     padding: $spatiu-2xl $spatiu-xl;
+
+    color: $fundal;
+    background-color: $fundal;
+    background-image: 
+        linear-gradient(to right,  rgba(30,80,150,0.6) 2px, transparent 1px),
+        linear-gradient(to bottom,  rgba(30,80,150,0.6) 2px, transparent 1px),
+
+        linear-gradient(to right,  rgba(30,80,150,0.15) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(30,80,150,0.15) 1px, transparent 1px);
+    background-size: 
+        100% 100%,
+        100% 100%,
+        40px 40px,
+        40px 40px;
+    background-position: 160px 0, 0 800px, 0 0 ,0 0;
+    background-repeat: no-repeat no-repeat repeat repeat;
+
+    @media (max-height: 800px) {
+        background-image:
+            linear-gradient(to right, rgba(30,80,150,0.6) 2px, transparent 1px),
+            linear-gradient(to right, rgba(30,80,150,0.15) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(30,80,150,0.15) 1px, transparent 1px);
+        background-size: 100% 100%, 40px 40px, 40px 40px;
+        background-position: 160px 0, 0 0, 0 0;
+        background-repeat: no-repeat, repeat, repeat;
+    }
+
+
 }
 
 .continut-dashboard {
@@ -13,6 +41,7 @@
         font-weight: 400;
         color: $text-principal;
         margin-bottom: $spatiu-sm;
+        margin-left: $spatiu-2xl*3;
         letter-spacing: -0.02em;
     }
 
@@ -20,6 +49,7 @@
         color: $text-secundar;
         font-size: 1rem;
         margin-bottom: $spatiu-2xl;
+        margin-left: $spatiu-2xl*3;
     }
 }
 
