@@ -1,4 +1,4 @@
-from ai_agent import scoate_datele_problemei, genereaza_comenzi_geogebra
+from ai_agent import scoate_datele_problemei, genereaza_comenzi_geogebra, repara_comenzi_geogebra
 from categorii import CATEGORII
 
 from flask import Flask, render_template, request, url_for, redirect, make_response, g, jsonify
@@ -146,6 +146,7 @@ def adauga_problema():
             "user_id": ObjectId(g.user_id),
             "date_ai":[None],
             "cod_geogebra":[""],
+            "raport_erori_ggb": [[]],
             "clasa":clasa,
             "subcapitol":subcapitol,
             "tip_figura":tip_figura
@@ -192,6 +193,10 @@ def editeaza_problema(id_problema):
         problems_collection.update_one(
             {"_id": ObjectId(id_problema)},
             {"$push": {"cod_geogebra": ""}}
+        )
+        problems_collection.update_one(
+            {"_id": ObjectId(id_problema)},
+            {"$push": {"raport_erori_ggb": []}}
         )
 
     # problems_collection.update_one(
@@ -240,6 +245,13 @@ def sterge_versiune(id_problema):
         if isinstance(cod_ggb,list) and index_de_sters<len(cod_ggb):
             cod_ggb.pop(index_de_sters)
             update_data["cod_geogebra"]=cod_ggb
+
+    if "raport_erori_ggb" in problema:
+        raport_erori = problema["raport_erori_ggb"]
+
+        if isinstance(raport_erori, list) and index_de_sters < len(raport_erori):
+            raport_erori.pop(index_de_sters)
+            update_data["raport_erori_ggb"] = raport_erori
 
     #facem update la problema
     problems_collection.update_one(
@@ -328,6 +340,80 @@ def api_salveaza_cod_ggb(id_problema):
         {"$set":{f"cod_geogebra.{index_versiune}": cod_nou}}
     )
     return jsonify({"status":"succes"})
+
+@app.route("/api/salveaza_raport_erori/<id_problema>", methods=['POST'])
+@token_required
+def api_salveaza_raport_erori(id_problema):
+    date = request.get_json()
+    index_versiune = date.get('index')
+    raport = date.get('raport')
+
+    # Asiguram ca documentul are campul raport_erori_ggb si ca e suficient de lung
+    problema = problems_collection.find_one({
+        "_id": ObjectId(id_problema),
+        "user_id": ObjectId(g.user_id)
+    })
+
+    if not problema:
+        return jsonify({"status": "eroare", "mesaj": "Problema nu a fost gasita"}), 404
+
+    # Daca campul nu exista sau e prea scurt, il extindem
+    raport_erori = problema.get("raport_erori_ggb", [])
+    while len(raport_erori) <= index_versiune:
+        raport_erori.append([])
+    
+    # Adaugam raportul nou in istoric la pozitia versiunii
+    raport_erori[index_versiune].append(raport)
+
+    # Salvam in MongoDB
+    problems_collection.update_one(
+        {"_id": ObjectId(id_problema)},
+        {"$set": {"raport_erori_ggb": raport_erori}}
+    )
+
+    return jsonify({"status": "succes"})
+
+@app.route("/api/repara_cod_ggb/<id_problema>", methods=['POST'])
+@token_required
+def api_repara_cod_ggb(id_problema):
+    date = request.get_json()
+    index_versiune = date.get('index')
+
+    problema = problems_collection.find_one({
+        "_id": ObjectId(id_problema),
+        "user_id": ObjectId(g.user_id)
+    })
+
+    if not problema:
+        return jsonify({"status": "eroare", "mesaj": "Problema nu a fost gasita"}), 404
+
+    # Verificam ca avem toate datele necesare
+    cod_anterior = problema.get("cod_geogebra", [])[index_versiune] if index_versiune < len(problema.get("cod_geogebra", [])) else None
+    
+    if not cod_anterior:
+        return jsonify({"status": "eroare", "mesaj": "Nu exista cod GeoGebra pentru aceasta versiune"}), 400
+
+    # Luam ultimul raport de erori (cel mai recent)
+    rapoarte_versiune = problema.get("raport_erori_ggb", [])
+    if index_versiune >= len(rapoarte_versiune) or not rapoarte_versiune[index_versiune]:
+        return jsonify({"status": "eroare", "mesaj": "Nu exista raport de erori pentru aceasta versiune"}), 400
+    
+    raport = rapoarte_versiune[index_versiune][-1]  # ultimul raport din istoric
+
+    # Datele problemei (context geometric)
+    date_problema = problema.get("date_ai", [])[index_versiune] if index_versiune < len(problema.get("date_ai", [])) else {}
+
+    # Apelam AI-ul pentru reparare
+    rezultat = repara_comenzi_geogebra(date_problema, cod_anterior, raport)
+    
+    if rezultat is None:
+        return jsonify({"status": "eroare", "mesaj": "Eroare la apelul AI"}), 500
+
+    return jsonify({
+        "status": "succes",
+        "comenzi": rezultat["comenzi"]  # lista de {comanda, schimbat, explicatie}
+    })
+
 
 @app.route("/api/actualizeaza_categorii/<id_problema>",methods=["POST"])
 @token_required

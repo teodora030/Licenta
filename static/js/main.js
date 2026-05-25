@@ -1,4 +1,6 @@
 window.addEventListener('load', function () {
+    const MOD_DEBUG = false;
+    let updateUI = null;
 
     const wrapper = document.getElementById('ggb-wrapper');
 
@@ -6,7 +8,7 @@ window.addEventListener('load', function () {
     
         const containerWidth = wrapper.offsetWidth;
         const tipFigura = wrapper.dataset.tip;
-        const appName = tipFigura === "3d" ? "3d" : "graphing"
+        const appName = tipFigura === "3d" ? "3d" : "classic"
 
     const ggbApp = new GGBApplet({
         appName: appName,
@@ -15,6 +17,10 @@ window.addEventListener('load', function () {
         showToolBar: true,
         showAlgebraInput: true,
         showMenuBar: true,
+        appletOnLoad: function(){
+            console.log("Geogebra e gata");
+            if (updateUI) updateUI();
+        }
     }, true);
 
     ggbApp.inject('ggb-element');
@@ -55,6 +61,7 @@ window.addEventListener('load', function () {
         const zonaCodGgb = this.document.getElementById('zona_cod_geogebra');
         const textareaComenzi = this.document.getElementById('textarea_cod_geogebra');
         const btnDeseneaza=this.document.getElementById('btn_deseneaza');
+        const btnReparaAI = this.document.getElementById('btn_repara_ai');
         const cutieCoduri = this.document.getElementById("date_cod_ggb"); //div-ul invizibil
         let coduriSalvate = [];
         if (cutieCoduri && cutieCoduri.dataset.coduri){
@@ -64,7 +71,7 @@ window.addEventListener('load', function () {
 
 
 
-        function updateUI(){
+        updateUI= function(){
             textarea.value=versiuni[indexCurent];
             spanCurent.textContent=indexCurent+1;
             spanTotal.textContent=versiuni.length;
@@ -131,7 +138,7 @@ window.addEventListener('load', function () {
             }
 
             
-        }
+        };
 
         btnExtrage.addEventListener('click', async function() {
             const originalText = btnExtrage.innerHTML;
@@ -207,28 +214,174 @@ window.addEventListener('load', function () {
             }
         });
 
-        async function deseneazaDinTextarea(){
-            const codNou=textareaComenzi.value;
-            const liniiCod = textareaComenzi.value.split('\n').filter(linie=> linie.trim() !== '');
+        async function deseneazaDinTextarea(incercareDeReparareDejaFacuta = false){
+            const codNou = textareaComenzi.value;
+            const liniiCod = codNou.split('\n').filter(linie => linie.trim() !== '');
+            
+            let mesajEroareCapturat = null;
+            
+            const observer = new MutationObserver((mutations) => {
+                for (const mutation of mutations) {
+                    for (const node of mutation.addedNodes) {
+                        if (node.nodeType !== 1) continue;
+                        
+                        const dialog = node.matches?.('div.dialogComponent[aria-label="Error"]') 
+                            ? node 
+                            : node.querySelector?.('div.dialogComponent[aria-label="Error"]');
+                        
+                        if (dialog) {
+                            const labels = dialog.querySelectorAll('.gwt-Label');
+                            const textEroare = Array.from(labels)
+                                .map(l => l.textContent.trim())
+                                .filter(t => t !== '')
+                                .join(' | ');
+                            
+                            mesajEroareCapturat = textEroare;
+                            
+                            if (!MOD_DEBUG) {
+                                setTimeout(() => {
+                                    const btnClose = dialog.querySelector('button.dialogTextButton');
+                                    if (btnClose) {
+                                        btnClose.click();
+                                    } else {
+                                        console.warn("Butonul CLOSE nu a fost gasit");
+                                    }
+                                }, 50);
+                            }
+                        }
+                    }
+                }
+            });
+            
+            observer.observe(document.body, { childList: true, subtree: true });
+            
             ggbApplet.newConstruction();
-            liniiCod.forEach(comanda => {
-                ggbApplet.evalCommand(comanda.trim());
-            });
-
+            
+            const raport = [];
+            
+            for (const comanda of liniiCod) {
+                mesajEroareCapturat = null;
+                
+                const succes = ggbApplet.evalCommand(comanda.trim());
+                
+                await new Promise(resolve => setTimeout(resolve, 100));
+                
+                raport.push({
+                    comanda: comanda.trim(),
+                    succes: succes,
+                    eroare: mesajEroareCapturat
+                });
+            }
+            
+            observer.disconnect();
+            
+            console.log("=== RAPORT EXECUTIE GEOGEBRA ===");
+            console.table(raport);
+            
             const idProblema = window.location.pathname.split('/').pop();
+            
             await fetch(`/api/salveaza_cod_ggb/${idProblema}`, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ index: indexCurent, cod: codNou })
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ index: indexCurent, cod: codNou })
             });
+            
+            coduriSalvate[indexCurent] = codNou;
+            
+            const exista_erori = raport.some(item => item.succes === false);
+            
+            if (exista_erori) {
+                console.log("Erori detectate, trimit raportul la backend...");
+                
+                const raportComplet = {
+                    timestamp: new Date().toISOString(),
+                    comenzi: raport
+                };
+                
+                await fetch(`/api/salveaza_raport_erori/${idProblema}`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ 
+                        index: indexCurent, 
+                        raport: raportComplet 
+                    })
+                });
+                
+                console.log("Raport salvat in MongoDB");
+                
+                // AUTO-REPARARE: doar la prima incercare
+                if (!incercareDeReparareDejaFacuta) {
+                    console.log("Incerc auto-repararea cu AI...");
+                    const reusit = await incearcaRepararea();
+                    if (reusit) return;  // Re-executia s-a facut deja in incearcaRepararea
+                }
+                
+                // Daca am ajuns aici: ori am facut deja retry, ori repararea a esuat
+                console.log("Activez butonul manual 'Repara cu AI'");
+                btnReparaAI.disabled = false;
+            } else {
+                // Totul ok → dezactivam butonul manual
+                btnReparaAI.disabled = true;
+            }
+        }
 
-            coduriSalvate[indexCurent]=codNou;
+        async function incearcaRepararea(){
+            const idProblema = window.location.pathname.split('/').pop();
+            
+            btnReparaAI.innerHTML = "Se repara...";
+            btnReparaAI.disabled = true;
+            
+            try {
+                const response = await fetch(`/api/repara_cod_ggb/${idProblema}`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ index: indexCurent })
+                });
+                
+                const data = await response.json();
+                
+                if (data.status !== "succes") {
+                    console.error("AI nu a putut repara:", data.mesaj);
+                    btnReparaAI.innerHTML = "Repara cu AI";
+                    return false;
+                }
+                
+                // Afisam in consola explicatiile pentru liniile schimbate
+                console.log("=== REPARARI FACUTE DE AI ===");
+                data.comenzi.forEach((linie, i) => {
+                    if (linie.schimbat) {
+                        console.log(`Linia ${i+1}: ${linie.comanda}`);
+                        console.log(`   → ${linie.explicatie}`);
+                    }
+                });
+                
+                // Construim codul nou (doar comenzile, fara metadata)
+                const codReparat = data.comenzi.map(linie => linie.comanda).join('\n');
+                
+                // Inlocuim in textarea
+                textareaComenzi.value = codReparat;
+                
+                btnReparaAI.innerHTML = "Repara cu AI";
+                
+                // Re-executam (cu flag-ul ca am incercat deja repararea)
+                await deseneazaDinTextarea(true);
+                
+                return true;
+                
+            } catch (error) {
+                console.error("Eroare la reparare:", error);
+                btnReparaAI.innerHTML = "Repara cu AI";
+                return false;
+            }
         }
 
         if (btnDeseneaza){
             btnDeseneaza.addEventListener('click',deseneazaDinTextarea);
         }
 
+        if (btnReparaAI){
+            btnReparaAI.addEventListener('click', incearcaRepararea);
+        }
 
 
         btnPrev.addEventListener('click',function(){
@@ -267,7 +420,7 @@ window.addEventListener('load', function () {
             })
         };
 
-        updateUI();
+        //updateUI();
     }
 
 

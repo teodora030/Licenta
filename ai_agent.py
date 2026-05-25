@@ -32,7 +32,13 @@ class ExtragereDateleProblemei(BaseModel):
 class ComenziGeogebra(BaseModel):
     comenzi: List[str] = Field(description="Lista de comenzi text pentru GeoGebra, in ordinea logica a constructiei.")
 
-    
+class LinieGeoGebra(BaseModel):
+    comanda: str = Field(description="Comanda GeoGebra (fara comentariu)")
+    schimbat: bool = Field(description="True daca aceasta linie a fost modificata fata de codul original")
+    explicatie: Optional[str] = Field(description="Daca schimbat=True, explicatie scurta despre ce s-a reparat", default=None)
+
+class ComenziReparate(BaseModel):
+    comenzi: List[LinieGeoGebra] = Field(description="Lista de comenzi reparate, in ordine. Pentru fiecare linie indica daca a fost schimbata.")    
     
 FEW_SHOT_EXAMPLES_DATE = """
 EXEMPLU 1:
@@ -313,4 +319,78 @@ def genereaza_comenzi_geogebra(date_problema):
         return rezultat_structurat.comenzi
     except Exception as e:
         print(f"Eroare la ai: {e}")
+        return None
+    
+
+def repara_comenzi_geogebra(date_problema, cod_anterior, raport):
+    """
+    Primește codul GeoGebra anterior și raportul de execuție cu erori.
+    Returnează codul reparat cu marcarea liniilor schimbate.
+    """
+    llm = ChatAnthropic(model="claude-sonnet-4-20250514")
+    parser = PydanticOutputParser(pydantic_object=ComenziReparate)
+    
+    # Formatam raportul ca text linie-cu-linie
+    raport_text = ""
+    for i, item in enumerate(raport["comenzi"], start=1):
+        if item["succes"]:
+            raport_text += f"Linia {i}: {item['comanda']} → OK\n"
+        else:
+            eroare = item.get("eroare") or "necunoscuta"
+            raport_text += f"Linia {i}: {item['comanda']} → EROARE: {eroare}\n"
+    
+    prompt = ChatPromptTemplate.from_messages([
+        ("system", """
+            Rolul tau este sa repari comenzi GeoGebra care au esuat la executie.
+            
+            Ai primit:
+            1. Datele unei probleme de geometrie
+            2. Codul GeoGebra generat anterior pentru aceasta problema
+            3. Raportul de executie care arata ce comenzi au reusit (OK) si care au esuat (EROARE)
+            
+            Sarcina ta:
+            - Analizeaza fiecare comanda care a esuat si identifica cauza
+            - Returneaza INTREG codul reparat, in ordine logica
+            - Pastreaza comenzile care au reusit, doar daca raman valide in contextul reparat
+            - Pentru fiecare linie indica daca a fost schimbata (schimbat=true/false)
+            - Pentru liniile schimbate adauga o explicatie scurta in romana
+            
+            Reguli GeoGebra importante:
+            - Punctele au nume cu MAJUSCULE (A, B, C, M, N)
+            - Segmentele, dreptele, cercurile, razele au nume cu litere mici (ab, oc, h_line)
+            - Rotate(Punct, unghi, centru) → returneaza un Punct
+            - Rotate(Dreapta/Raza/Segment, unghi, centru) → returneaza acelasi tip
+            - Ray(P1, P2) cere DOUA PUNCTE, nu accepta raze sau drepte
+            - Intersect(d, c) cu cerc poate returna o lista; foloseste Intersect(d, c, 1) pentru primul punct
+            
+            Raspunde STRICT in formatul JSON cerut:
+            \n{format_instructions}
+            """
+        ),
+        ("human", """
+            Datele problemei:
+            {date_problema}
+            
+            Codul anterior generat:
+            {cod_anterior}
+            
+            Raportul de executie:
+            {raport_text}
+            
+            Repara codul.
+            """
+        )
+    ]).partial(format_instructions=parser.get_format_instructions())
+    
+    chain = prompt | llm | parser
+    
+    try:
+        rezultat = chain.invoke({
+            "date_problema": json.dumps(date_problema, ensure_ascii=False),
+            "cod_anterior": cod_anterior,
+            "raport_text": raport_text
+        })
+        return rezultat.model_dump()
+    except Exception as e:
+        print(f"Eroare la reparare: {e}")
         return None
