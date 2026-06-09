@@ -14,7 +14,7 @@ load_dotenv()
 ANTHROPIC_API_KEY = os.getenv('ANTHROPIC_API_KEY')
 
 class RelatieGeometrica(BaseModel):
-    tip: str = Field(description="Tipul constructiei geometrice. ex: punct_pe_latura, inaltime, bisectoare, mijloc, mediana, mediatoare, drepte paralele, puncte coliniare, simetricul unui punct fata de alt punct, altele. Foloseste 'punct_pe_latura' cand un punct nou se afla pe o latura existenta a figurii (ex: E pe AB, F pe AC).")
+    tip: str = Field(description="Tipul constructiei geometrice. ex: punct_pe_latura, inaltime, bisectoare, mijloc, mediana, mediatoare, drepte_paralele, puncte_coliniare, simetricul_unui_punct_fata_de_alt_punct, altele. Foloseste 'punct_pe_latura' cand un punct nou se afla pe o latura existenta a figurii (ex: E pe AB, F pe AC).")
     nume_punct_nou: Optional[str] = Field(description="Numele punctului rezultat, ex: D",default=None)
     elemente_vizate: List[str] = Field(description="Numele elementelor pe care le folosim pentru a construi un element dependent. ex: ['AB']",default=[])
     detalii: Optional[str] = Field(description="Orice informatie suplimentara despre constructie, ex: 'E este intre A si B', 'M este mijlocul lui BC'",default=None)
@@ -24,12 +24,12 @@ class ExtragereDateleProblemei(BaseModel):
         description=(
             "Lista de categorii care descriu figura. Cele mai multe probleme au o singura categorie, "
             "dar unele pot avea mai multe (ex: ['triunghi_dreptunghic', 'inscris_in_cerc']). "
-            "Categorii valide (foloseste EXACT una dintre ele, NU inventa altele): "
+            "Categorii valide (foloseste EXACT dintre ele, NU inventa altele): "
             "puncte_coliniare,drepte_paralele, triunghi_oarecare, triunghi_isoscel, triunghi_echilateral, "
             "triunghi_dreptunghic, patrulater_oarecare, paralelogram, patrat, dreptunghi, "
             "romb, trapez, unghi, cerc, inscris_in_cerc, circumscris_cercului, "
-            "prisma, cub, piramida, graficul_functiei"
-            "drepte_perpendiculare, constructia_triunghiurilor,linii_importante_in_triunghi,congruenta_triunghiurilor"
+            "prisma, cub, piramida, graficul_functiei,"
+            "drepte_perpendiculare, constructia_triunghiurilor,linii_importante_in_triunghi,congruenta_triunghiurilor,"
             "asemanarea_triunghiurilor,geometrie_in_spatiu,tetraedru,paralelipiped_dreptunghic, cilindru, con, paralelism_in_spatiu, perpendiculatitate_in_spatiu, proiectii_de_puncte, unghi_diedru, teorema_celor_trei_perpendiculare,altele"
         )
     )
@@ -44,9 +44,8 @@ class ExtragereDateleProblemei(BaseModel):
     )
     laturi_date: Dict[str, float] = Field(
         description=(
-            "Doar laturile cu valori numerice DIRECT date in problema (nu derivate). "
+            "Laturile cu valori numerice DIRECT date in problema (nu derivate)."
             "Ex: 'AB = 6 cm, BC = 10 cm' -> {'AB': 6.0, 'BC': 10.0}. "
-            "Pentru laturi exprimate prin relatii ('BD = 3*CD'), foloseste relatii_intre_laturi, NU acest camp."
         )
     )
     unghiuri_mentionate: List[str] = Field(
@@ -68,30 +67,18 @@ class ExtragereDateleProblemei(BaseModel):
     )
     aria: Optional[float] = Field(
         description=(
-            "Aria figurii daca este DATA explicit in problema (ca valoare numerica). "
-            "Ex: 'paralelogram cu aria 96 cm^2' -> 96.0. "
-            "Daca aria e doar CERUTA (de calculat), returneaza null. "
-            "Daca nu apare, null."
+            "Aria DATA explicit (ca valoare). null daca e doar ceruta sau absenta."
         ),
         default=None
     )
     perimetru: Optional[float] = Field(
         description=(
-            "Perimetrul figurii daca este DAT explicit. "
-            "Ex: 'triunghi cu perimetrul 24 cm' -> 24.0. "
-            "Daca e doar cerut, returneaza null."
+            "Perimetrul figurii daca este DAT explicit. Daca e doar cerut, returneaza null."
         ),
         default=None
     )
     relatii_intre_laturi: List[str] = Field(
-        description=(
-            "Relatii algebrice intre laturi/segmente, NU valori directe. Format STRICT: 'rezultat = expresie'. "
-            "EXEMPLE: "
-            "'BD = 3*CD' -> ['BD = 3*CD']; "
-            "'AD este de 3 ori mai mare ca BD' -> ['AD = 3*BD']; "
-            "'BE = AE/2' -> ['BE = AE/2']. "
-            "Foloseste denumiri de laturi/segmente, nu numere. "
-            "Pentru valori directe (AB=10), foloseste laturi_date, NU acest camp."
+        description=("Relatii algebrice intre laturi, format 'rezultat = expresie'. Ex: ['BD = 3*CD']."
         ),
         default=[]
     )
@@ -377,7 +364,7 @@ def scoate_datele_problemei(text_problema):
           (
               "system",
               """
-              Esti un asistent expert in matematica si geometrie plana.
+              Esti un asistent in matematica, geometrie plana si in spatiu.
               Rolul tau este sa analizezi o problema de geometrie in limba romana si sa extragi datele esentiale intr-un format structurat precis.
               
               REGULI IMPORTANTE:
@@ -630,14 +617,23 @@ Date de intrare:
 
 Mentiuni: Pentru figuri 3D foloseste comanda Cube(A, B, directie) sau construieste cu coordonate 3D.
 Punctele cu apostrof (A') sunt scrise in GeoGebra ca A_1 sau cu indicii (verifica documentatia).
+C nu trebuie precizat deoarece este creat din comanda Cube(D,A,B)
 
 Raspuns corect:
 ["A = (0, 0, 0)",
  "B = (8, 0, 0)",
  "D = (0, 8, 0)",
- "cub1 = Cube(A, B, D)",
- "M = Midpoint(C, C')",
- "am = Segment(A, M)"]
+ "cub1 = Cube(D,A,B)",
+ "A_1=F",
+ "B_1=G",
+ "C_1=H",
+ "D_1=E",
+ "M = Midpoint(C, C_1)",
+ "am = Segment(A, M)",
+ "SetConditionToShowObject(F, false)",
+ "SetConditionToShowObject(G, false)",
+ "SetConditionToShowObject(H, false)",
+ "SetConditionToShowObject(E, false)"]
 
 
 Exemplul 8 (graficul unei functii liniare):

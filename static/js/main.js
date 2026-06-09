@@ -313,7 +313,7 @@ window.addEventListener('load', function () {
                     
                     const succes = ggbApplet.evalCommand(comanda.trim());
                     
-                    await new Promise(resolve => setTimeout(resolve, 100));
+                    await new Promise(resolve => setTimeout(resolve, 50));
                     
                     raport.push({
                         comanda: comanda.trim(),

@@ -1,4 +1,4 @@
-from ai_agent import scoate_datele_problemei, genereaza_comenzi_geogebra, repara_comenzi_geogebra
+from ai_pipeline import scoate_datele_problemei, genereaza_comenzi_geogebra, repara_comenzi_geogebra
 from categorii import CATEGORII
 
 from flask import Flask, render_template, request, url_for, redirect, make_response, g, jsonify
@@ -96,19 +96,15 @@ def token_required(f):
     @wraps(f)
     def decorated(*args,**kwargs):
         token = request.cookies.get('jwt_token')
-
         if not token:
-            return redirect(url_for('login', eroare="Trebuie să te loghezi pentru a accesa pagina!"))
-        
+            return redirect(url_for('login', eroare="Trebuie sa te loghezi pentru a accesa pagina!"))
         try:
             date_token = jwt.decode(token, app.config['SECRET_KEY'], algorithms=["HS256"])
             g.user_id=date_token['user_id']
-            
         except jwt.ExpiredSignatureError:
-            return redirect(url_for('login', eroare="Sesiunea a expirat. Te rugăm să te loghezi din nou."))
+            return redirect(url_for('login', eroare="Sesiunea a expirat. Te rugam să te loghezi din nou."))
         except jwt.InvalidTokenError:
             return redirect(url_for('login', eroare="Token invalid!"))
-
         return f(*args, **kwargs)
     return decorated
 
