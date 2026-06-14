@@ -1,7 +1,9 @@
-<!DOCTYPE html>
-<html>
-<head><title>Eroare conexiune</title></head>
-<body>
+{% extends 'base.html' %}
+
+{% block head %}
+<title>Eroare conexiune</title>
+{% endblock %}
+{%block body%}
     <div class="pagina-formular">
         <div class="card-formular">
             <h1 class="titlu-formular">Serverul nu se poate conecta la baza de date</h1>
@@ -12,5 +14,4 @@
         </div>
     </div>
     
-</body>
-</html>
+{% endblock %}
