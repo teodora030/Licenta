@@ -55,7 +55,7 @@
 
 .lista_probleme {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
     gap: $spatiu-2xl;
 }
 
@@ -68,7 +68,7 @@
     padding: $spatiu-lg;
     text-decoration: none;
     color: inherit;
-    aspect-ratio: 3/4;
+    aspect-ratio: 4/3;
     max-width: 600px;
     transition: all $tranzitie;
 
@@ -88,6 +88,7 @@
         // Truncare la 4 rânduri
         display: -webkit-box;
         -webkit-line-clamp: 4;
+        line-clamp:4;
         -webkit-box-orient: vertical;
         overflow: hidden;
     }
@@ -115,7 +116,7 @@
     text-decoration: none;
     color: $accent;
     max-height: 180px;
-    aspect-ratio: 2;
+    max-width: 600px;
     transition: all $tranzitie;
  
     &:hover {
@@ -150,5 +151,21 @@
     p {
         margin-bottom: $spatiu-md;
         font-size: 1rem;
+    }
+}
+
+.filtre {
+    display: flex;
+    gap: $spatiu-md;
+    flex-wrap: wrap;
+    margin-bottom: $spatiu-lg;
+    margin-left: 9rem;
+
+    select{
+        padding: 0.5rem 0.75rem;
+        border: 1px solid $border;
+        border-radius: $raza-border-sm;
+        color: $text-principal;
+
     }
 }

@@ -111,14 +111,19 @@ a:hover {
   max-width: 400px;
 }
 .card-formular .titlu-formular {
+  color: #1a1a1a;
   text-align: center;
   margin-bottom: 0.25rem;
 }
 .card-formular .subtitlu-formular {
   text-align: center;
   color: #3e4145;
-  font-size: 0.875rem;
+  font-size: 1rem;
   margin-bottom: 3rem;
+}
+
+.card-formular--lat {
+  max-width: 700px;
 }
 
 .camp {
@@ -155,11 +160,12 @@ a:hover {
 }
 
 .btn, .btn-pericol, .btn-secundar, .btn-principal {
+  background-color: aliceblue;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   padding: 0.6rem 1.5rem;
-  border: none;
+  border: 1px solid #93c5fd;
   border-radius: 6px;
   font-family: "BJCree", sans-serif;
   font-size: 0.9rem;
@@ -287,7 +293,7 @@ a:hover {
 
 .lista_probleme {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
   gap: 3rem;
 }
 
@@ -300,7 +306,7 @@ a:hover {
   padding: 1.5rem;
   text-decoration: none;
   color: inherit;
-  aspect-ratio: 3/4;
+  aspect-ratio: 4/3;
   max-width: 600px;
   transition: all 0.2s ease;
 }
@@ -342,7 +348,7 @@ a:hover {
   text-decoration: none;
   color: #2563eb;
   max-height: 180px;
-  aspect-ratio: 2;
+  max-width: 600px;
   transition: all 0.2s ease;
 }
 .card-adauga:hover {
@@ -373,6 +379,45 @@ a:hover {
 .mesaj-gol p {
   margin-bottom: 1rem;
   font-size: 1rem;
+}
+
+.filtre {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+  margin-left: 9rem;
+}
+.filtre select {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  color: #1a1a1a;
+}
+
+.content {
+  padding: 2rem 3rem;
+}
+
+.textarea-stilizat {
+  display: block;
+  width: 100%;
+  max-width: 800px;
+  min-height: 100px;
+  padding: 1rem 1.5rem;
+  margin-bottom: 1.5rem;
+  background: #ffffff;
+  border-radius: 8px;
+  font-size: 1.05 rem;
+  line-height: 1.6;
+  color: #1a1a1a;
+  resize: vertical;
+}
+.textarea-stilizat::-moz-placeholder {
+  color: #3e4145;
+}
+.textarea-stilizat::placeholder {
+  color: #3e4145;
 }
 
 #ggb-element {

@@ -1,18 +1,20 @@
 {% extends 'base.html' %}
 {% block body %}
-<div class="card-centrat">
-    <h2>Verifică-ți email-ul</h2>
-    <p>Ți-am trimis un email de confirmare la <b>{{ email }}</b>.</p>
-    <p>Apasă pe linkul din email pentru a-ți activa contul.</p>
-    <p>Linkul expiră în 24 de ore.</p>
-    
-    {% if mesaj %}
-        <p class="mesaj-succes">{{ mesaj }}</p>
-    {% endif %}
-    
-    <form action="/retrimite_confirmare" method="POST">
-        <input type="email" name="email" value="{{ email }}" required>
-        <button type="submit">Retrimite email-ul</button>
-    </form>
+<div class="pagina-formular">
+    <div class="card-formular">
+        <h2>Verifică-ți email-ul</h2>
+        <p>Ți-am trimis un email de confirmare la <b>{{ email }}</b>.</p>
+        <p>Apasă pe linkul din email pentru a-ți activa contul.</p>
+        <p>Linkul expiră în 24 de ore.</p>
+        
+        {% if mesaj %}
+            <p class="mesaj-succes">{{ mesaj }}</p>
+        {% endif %}
+        
+        <form action="/retrimite_confirmare" method="POST">
+            <input type="email" name="email" value="{{ email }}" required>
+            <button type="submit">Retrimite email-ul</button>
+        </form>
+    </div>
 </div>
 {% endblock %}

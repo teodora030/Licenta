@@ -2,12 +2,13 @@
 
 {% block head %}
 <title>Creează un cont - TeoGebra</title>
+<script src="{{ url_for('static', filename='js/categorii.js') }}"></script>
 {% endblock %}
 
 {% block body %}
 <div class="pagina-formular">
     <h1 class="logo-app playwrite-nz-guides-regular">TeoGebra</h1>
-    <div class="card-formular">
+    <div class="card-formular card-formular--lat">
         <h2 class="titlu-formular">Creează un cont</h2>
 
         {% if eroare %}
@@ -46,10 +47,10 @@
             </div>
 
             <div class="camp">
-                <label for="clasa_curenta">Clasa curentă (opțional):</label>
-                <select id="clasa_curenta" name="clasa_curenta">
+                <label for="clasa">Clasa curentă (opțional):</label>
+                <select id="clasa" name="clasa">
                     <option value="">-- Nu specific --</option>
-                    <!-- populat dinamic de categorii.js dacă vrei -->
+                    
                 </select>
             </div>
 

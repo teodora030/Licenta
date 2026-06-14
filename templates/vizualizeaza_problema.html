@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 
 {% block head %}
+{% include 'nav.html' %}
 <title>Vizualizare - TeoGebra</title>
 <script src="{{ url_for('static', filename='js/categorii.js') }}"></script>
 {% endblock %}
@@ -9,7 +10,7 @@
 
 <div class="content">
 
-    {% include 'nav.html' %}
+    
 
     <!--  mesaj primit de la ruta de adauga problema -->
     {% if mesaj %}
@@ -30,7 +31,7 @@
         <p>
             <b>Subcapitol:</b> <span id="text-subcapitol">{{ problema.subcapitol }}</span>
         </p>
-        <button type="button" id="btn-editeaza-categorii">Editează categoriile</button></div>
+        <button type="button" id="btn-editeaza-categorii" class="btn">Editează categoriile</button></div>
         <div id="form-categorii" style="display: none;">
             <div class="camp">
             <label for="clasa">Clasa:</label>
@@ -46,8 +47,8 @@
             </select>
         </div>
         
-        <button type="button" id="btn-salveaza-categorii">Salvează</button>
-        <button type="button" id="btn-anuleaza-categorii">Anulează</button>
+        <button type="button" id="btn-salveaza-categorii" class="btn">Salvează</button>
+        <button type="button" id="btn-anuleaza-categorii" class="btn">Anulează</button>
 
         </div>
         
@@ -59,18 +60,17 @@
     <div id="versiuni" style="display: flex; gap: 10px; margin-bottom: 15px;">
 
         <p>Versiunea <span id="versiune_curenta">1</span> din <span id="total_versiuni">1</span>:</p>
-        <button id="btn_prev">&#8592;</button>
-        <button id="btn_next">&#8594;</button>
+        <button id="btn_prev" class="btn">&#8592;</button>
+        <button id="btn_next" class="btn">&#8594;</button>
 
-        <button id="btn_sterge_versiune">Sterge Versiunea</button>
+        <button id="btn_sterge_versiune" class="btn">Sterge Versiunea</button>
 
     </div>
 
     <form action="/editeaza_problema/{{problema._id}}" method="POST">
-        <textarea name="text_problema" id="textarea_problema" rows="4" style="width: 80%; font-size: 16px; padding: 10px;">{{problema.versiuni_text[-1]}}</textarea>
+        <textarea name="text_problema" id="textarea_problema" class="textarea-stilizat">{{problema.versiuni_text[-1]}}</textarea>
 
-        <br>
-        <button type="submit" style="margin-top: 10px;">Salveaza o noua versiune</button>
+        <button type="submit" class="btn">Salveaza o noua versiune</button>
 
 
     </form>
@@ -82,15 +82,15 @@
 
     <div id="zona_cod_geogebra" style="display: none;">
         <h3>Codul Geogebra (editeaza manual):</h3>
-        <textarea id="textarea_cod_geogebra" rows="8"></textarea>
-        <button id="btn_deseneaza">Actualizeaza desenul</button>
-        <button id="btn_repara_ai" disabled>Repara cu AI</button>
+        <textarea id="textarea_cod_geogebra" class="textarea-stilizat rows="8"></textarea>
+        <button id="btn_deseneaza" class="btn">Actualizeaza desenul</button>
+        <button id="btn_repara_ai" class="btn" disabled >Repara cu AI</button>
     </div>
 
     <div>
-        <button id="btn_extrage_date">Extrage datele problemei</button>
+        <button id="btn_extrage_date" class="btn">Extrage datele problemei</button>
 
-        <button id="btn_genereaza_geogebra" disabled>Genereaza figura</button>
+        <button id="btn_genereaza_geogebra" class="btn" disabled>Genereaza figura</button>
     </div>
 
     

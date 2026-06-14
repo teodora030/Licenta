@@ -1,17 +1,18 @@
 {% extends 'base.html' %}
 
 {% block head %}
+{% include 'nav.html' %}
 <title>Adaugă Problema - TeoGebra</title>
 <script src="{{ url_for('static', filename='js/categorii.js') }}"></script>
 {% endblock %}
 
 {% block body %}
 <div class="content">
-    {% include 'nav.html' %}
+    
     <h1>Adaugă problema ta:</h1>
 
     <form action="/adauga_problema" method="POST" class="form-problema">
-        <textarea name="text_problema" id="content" 
+        <textarea class="textarea-stilizat" name="text_problema" id="content" 
                   placeholder="Fie un triunghi ABC..." required></textarea>
 
         <div class="camp">

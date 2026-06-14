@@ -145,7 +145,8 @@ def adauga_problema():
             "raport_erori_ggb": [[]],
             "clasa":clasa,
             "subcapitol":subcapitol,
-            "tip_figura":tip_figura
+            "tip_figura":tip_figura,
+            "rationament_ggb":[""]
         }
 
         rezultat = problems_collection.insert_one(document_problema)
@@ -193,6 +194,10 @@ def editeaza_problema(id_problema):
         problems_collection.update_one(
             {"_id": ObjectId(id_problema)},
             {"$push": {"raport_erori_ggb": []}}
+        )
+        problems_collection.update_one(
+            {"_id": ObjectId(id_problema)},
+            {"$push": {"rationament_ggb": ""}}
         )
 
     return redirect(url_for('vizualizeaza_problema',id_problema=id_problema, mesaj="Versiune noua salvata.",auto_genereaza=1))
@@ -314,13 +319,15 @@ def api_genereaza_figura(id_problema):
         lista_comenzi = rezultat["comenzi"]
         laturi_complete = rezultat["laturi_date_complete"]
         unghiuri_complete = rezultat["unghiuri_date_complete"]
+        rationament = rezultat["rationament"]
         
         problems_collection.update_one(
             {"_id": ObjectId(id_problema)},
             {"$set": {
                 f"cod_geogebra.{index_versiune}": "\n".join(lista_comenzi),
                 f"date_ai.{index_versiune}.laturi_date_complete": laturi_complete,
-                f"date_ai.{index_versiune}.unghiuri_date_complete": unghiuri_complete
+                f"date_ai.{index_versiune}.unghiuri_date_complete": unghiuri_complete,
+                f"rationament_ggb.{index_versiune}":rationament,
             }}
         )
         return jsonify({

@@ -744,6 +744,7 @@ def genereaza_comenzi_geogebra(date_problema, text_problema):
     try:
         rezultat_structurat = chain.invoke({"date_json": json.dumps(date_problema), "text_problema":text_problema})
         return {
+            "rationament": rezultat_structurat.rationament,
             "comenzi": rezultat_structurat.comenzi,
             "laturi_date_complete": laturi_complete,
             "unghiuri_date_complete": unghiuri_complete,
@@ -940,3 +941,5 @@ def rezolva_relatii_unghiuri(unghiuri_date: dict, relatii: List[str]) -> dict:
             print(f"Eroare la rezolvarea relatiei '{relatie}': {e}")
     
     return cunoscute
+
+

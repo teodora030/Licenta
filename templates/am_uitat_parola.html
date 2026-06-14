@@ -1,21 +1,24 @@
 {% extends 'base.html' %}
 {% block body %}
-<div class="card-centrat">
-    <h2>Am uitat parola</h2>
-    
-    {% if mesaj %}
-        <p class="mesaj-succes">{{ mesaj }}</p>
-    {% else %}
-        <p>Introdu adresa de email și îți vom trimite un link de resetare.</p>
-        <form action="/am_uitat_parola" method="POST">
-            <div class="camp">
-                <label for="email">Email:</label>
-                <input type="email" id="email" name="email" required>
-            </div>
-            <button type="submit">Trimite link</button>
-        </form>
-    {% endif %}
-    
-    <p><a href="/login">Înapoi la login</a></p>
+<div class="pagina-formular">
+    <h1 class="logo-app playwrite-nz-guides-regular">TeoGebra</h1>
+    <div class="card-formular">
+        <h2 class="titlu-formular">Am uitat parola</h2>
+        
+        {% if mesaj %}
+            <p class="mesaj-succes">{{ mesaj }}</p>
+        {% else %}
+            <p class="subtitlu-formular">Introdu adresa de email și îți vom trimite un link de resetare.</p>
+            <form action="/am_uitat_parola" method="POST">
+                <div class="camp">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+                <button type="submit" class="btn-principal">Trimite link</button>
+            </form>
+        {% endif %}
+        
+        <p class="link-formular"><a href="/login">Înapoi la login</a></p>
+    </div>
 </div>
 {% endblock %}

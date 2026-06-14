@@ -52,6 +52,7 @@
     max-width: $latime-form;
 
     .titlu-formular {
+        color: $text-principal;
         text-align: center;
         margin-bottom: $spatiu-xs;
     }
@@ -59,9 +60,13 @@
     .subtitlu-formular {
         text-align: center;
         color: $text-secundar;
-        font-size: 0.875rem;
+        font-size: 1rem;
         margin-bottom: $spatiu-2xl;
     }
+}
+
+.card-formular--lat{
+    max-width: 700px;
 }
 
 // Câmpuri de input
@@ -101,11 +106,12 @@
 
 // Butoane
 .btn {
+    background-color: aliceblue;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     padding: 0.6rem $spatiu-lg;
-    border: none;
+    border: 1px solid $border-focus; 
     border-radius: $raza-border-sm;
     font-family: $font-body;
     font-size: 0.9rem;
@@ -138,7 +144,7 @@
 
     &:hover:not(:disabled) {
         background: $fundal;
-        border-color: darken($border, 10%);
+        border-color: color.adjust($color, $lightness: -10%);
     }
 }
 

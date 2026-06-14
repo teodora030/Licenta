@@ -1,0 +1,24 @@
+.content {
+    padding: $spatiu-xl $spatiu-2xl;
+}
+
+.textarea-stilizat {
+    display: block;
+    width: 100%;
+    max-width: 800px;
+    min-height: 100px;
+    padding: $spatiu-md $spatiu-lg;
+    margin-bottom: $spatiu-lg;
+
+    background: $alb;
+    border-radius: $raza-border;
+
+    font-size: 1.05 rem;
+    line-height: 1.6;
+    color: $text-principal;
+    resize: vertical;
+
+    &::placeholder{
+        color: $text-secundar;
+    }
+}
