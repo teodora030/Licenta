@@ -1,4 +1,3 @@
-// Container centrat pentru formulare
 .pagina-formular {
     color: $fundal;
     display: flex;
@@ -69,7 +68,6 @@
     max-width: 700px;
 }
 
-// Câmpuri de input
 .camp {
     margin-bottom: $spatiu-lg;
 
@@ -104,7 +102,6 @@
     }
 }
 
-// Butoane
 .btn {
     background-color: aliceblue;
     display: inline-flex;
@@ -160,7 +157,7 @@
     }
 }
 
-// Link sub formular
+
 .link-formular {
     text-align: center;
     margin-top: $spatiu-xl;

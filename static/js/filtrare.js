@@ -2,7 +2,7 @@ window.addEventListener('load', function() {
     const filtruClasa = document.getElementById('filtru-clasa');
     const filtruSubcap = document.getElementById('filtru-subcapitol');
     const filtruTip = document.getElementById('filtru-tip');
-    // dacă nu suntem pe dashboard, ieșim
+    // daca nu suntem pe dashboard, iesim
     if (!filtruClasa) return;
     
     const probleme = document.querySelectorAll('.card-problema');
@@ -21,7 +21,7 @@ window.addEventListener('load', function() {
             const subcapCard = card.dataset.subcapitol;
             const tipCard = card.dataset.tip;
             
-            // verifică dacă card-ul corespunde filtrelor
+            // verifica daca card-ul corespunde filtrelor
             const matchClasa = !clasaSelectata || clasaCard === clasaSelectata;
             const matchSubcap = !subcapSelectat || subcapCard === subcapSelectat;
             const matchTip = !tipSelectat || tipCard === tipSelectat;
@@ -46,7 +46,7 @@ window.addEventListener('load', function() {
 
         console.log(`Vizibile: ${vizibile}/${probleme.length}`);
         
-        // mesaj dacă nu sunt rezultate
+        // mesaj daca nu sunt rezultate
         const mesajGol = document.getElementById('mesaj-niciun-rezultat');
         if (mesajGol) {
             mesajGol.style.display = vizibile === 0 ? 'block' : 'none';

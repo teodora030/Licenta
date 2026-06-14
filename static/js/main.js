@@ -31,7 +31,7 @@ window.addEventListener('load', function () {
             ggbApplet.setWidth(newWidth);
         });
 
-        // toate versiunile problemei transmise la finalul paginii vizualizeaza problema
+        // toate versiunile problemei transmise la finalul paginii "vizualizeaza problema"
         const cutieDate =  document.getElementById("date_versiuni");
 
         if(cutieDate){
@@ -368,7 +368,6 @@ window.addEventListener('load', function () {
                     console.log("Activez butonul manual 'Repara cu AI'");
                     btnReparaAI.disabled = false;
                 } else {
-                    // NOU: Executie curata - validam matematic
                     console.log("Executie curata. Verific corectitudinea matematica...");
                     
                     const dateAi = dateAiSalvate[indexCurent];
@@ -380,7 +379,6 @@ window.addEventListener('load', function () {
                         if (!raportMasuratori.toate_valide) {
                             console.warn("Imprecizii matematice detectate!");
                             
-                            // Salvam raportul de imprecizii in MongoDB
                             const raportImprecizii = {
                                 timestamp: new Date().toISOString(),
                                 masuratori: raportMasuratori
@@ -397,10 +395,8 @@ window.addEventListener('load', function () {
                             
                             console.log("Raport imprecizii salvat in MongoDB");
                             
-                            // NOU: Marcam tipul de raport pentru butonul manual
                             ultimulTipRaport = 'imprecizii';
                             
-                            // NOU: Auto-reparare la prima incercare
                             if (!incercareDeReparareDejaFacuta) {
                                 console.log("Incerc auto-repararea pentru imprecizii...");
                                 const reusit = await incearcaRepararea('imprecizii');
@@ -432,7 +428,7 @@ window.addEventListener('load', function () {
                         headers: {'Content-Type': 'application/json'},
                         body: JSON.stringify({ 
                             index: indexCurent,
-                            tip_raport: tipRaport  // NOU
+                            tip_raport: tipRaport
                         })
                     });
                     

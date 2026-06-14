@@ -102,9 +102,6 @@ class ExtragereDateleProblemei(BaseModel):
     cerinte: List[str] = Field(
         description="Lista cerintelor problemei, ex: ['Calculeaza lungimea EF', 'Demonstreaza ca ABC ~ AEF']"
     )
-
-    # ========== Campuri specifice pentru functii ==========
-    # Folosite DOAR cand 'graficul_functiei' este in tip_figura
     
     formula_functie: Optional[str] = Field(
         description=(
