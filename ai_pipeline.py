@@ -354,7 +354,7 @@ Raspuns corect:
 
 
 def scoate_datele_problemei(text_problema):
-    llm = ChatAnthropic(model="claude-sonnet-4-20250514")
+    llm = ChatAnthropic(model="claude-sonnet-4-6")
     parser=PydanticOutputParser(pydantic_object=ExtragereDateleProblemei)
     prompt = ChatPromptTemplate.from_messages(
       [
